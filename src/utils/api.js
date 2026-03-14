@@ -10,9 +10,11 @@
  * @returns {Promise<any>} Parsed JSON response data.
  * @throws {Error} With a user-friendly error message extracted from the response.
  */
+const API_BASE = process.env.REACT_APP_API_URL || '';
+
 export async function fetchJSON(url, options = {}) {
   const { headers: customHeaders, ...restOptions } = options;
-  const response = await fetch(url, {
+  const response = await fetch(`${API_BASE}${url}`, {
     ...restOptions,
     headers: { 'Content-Type': 'application/json', ...customHeaders },
   });
