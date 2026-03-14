@@ -1,0 +1,59 @@
+/* Antigenic Peptide Page - overrides and additions to shared tool-page styles */
+
+.antigenic-header {
+  background: linear-gradient(135deg, #4a148c, #6a1b9a);
+}
+
+.antigenic-banner {
+  background: linear-gradient(135deg, #311b92, #4527a0);
+}
+
+.antigenic-textarea {
+  height: 200px;
+}
+
+.seq-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+/* Options */
+.options-row {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.slider-row input[type="range"] {
+  width: 200px;
+  cursor: pointer;
+}
+
+.slider-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4a148c;
+  min-width: 36px;
+}
+
+/* Submit button color override */
+.antigenic-submit {
+  background: linear-gradient(135deg, #4a148c, #6a1b9a);
+}
+
+.antigenic-submit:hover {
+  background: linear-gradient(135deg, #38006b, #4a148c);
+}
+
+/* Spinner color override */
+.antigenic-spinner {
+  border-top-color: #6a1b9a;
+}
