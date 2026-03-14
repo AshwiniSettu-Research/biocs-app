@@ -203,7 +203,7 @@ function Footer() {
 
       <div className="footer-copyright">
         <p>
-          Copyright &copy; BIOCS 2024 |{' '}
+          Copyright &copy; BIOCS 2025 |{' '}
           <Link to="/about">Privacy Notice</Link> |{' '}
           <Link to="/about">Terms of use</Link>
         </p>

@@ -21,7 +21,7 @@
     radial-gradient(ellipse at 80% 50%, rgba(0, 180, 220, 0.08) 0%, transparent 50%);
 }
 
-/* DNA background animation */
+/* DNA SVG background animation */
 .hero-bg-animation {
   position: absolute;
   top: 0;
@@ -30,41 +30,32 @@
   bottom: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  perspective: 500px;
-  opacity: 0.3;
+  opacity: 0.45;
 }
 
-.helix-pair {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-  animation: helixRotate 3s ease-in-out infinite;
+.dna-svg {
+  width: 100%;
+  height: 100%;
 }
 
-.helix-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #00bcd4;
-  box-shadow: 0 0 6px rgba(0, 188, 212, 0.5);
+.dna-strand {
+  animation: dnaScroll 8s linear infinite;
 }
 
-.helix-dot.top {
-  animation: topDot 3s ease-in-out infinite;
+.dna-strand-top {
+  filter: drop-shadow(0 0 4px rgba(0, 188, 212, 0.4));
 }
 
-.helix-dot.bottom {
-  animation: bottomDot 3s ease-in-out infinite;
+.dna-strand-bottom {
+  filter: drop-shadow(0 0 4px rgba(0, 229, 255, 0.3));
 }
 
-.helix-line {
-  width: 2px;
-  height: 50px;
-  background: linear-gradient(to bottom, rgba(0, 188, 212, 0.5), rgba(0, 140, 180, 0.2), rgba(0, 188, 212, 0.5));
-  animation: lineStretch 3s ease-in-out infinite;
+.dna-rung {
+  animation: rungPulse 2.5s ease-in-out infinite;
+}
+
+.dna-dot {
+  animation: dotGlow 2.5s ease-in-out infinite;
 }
 
 /* Hero content */
@@ -134,24 +125,19 @@
   color: white;
 }
 
-@keyframes helixRotate {
-  0%, 100% { transform: rotateY(0deg); }
-  50% { transform: rotateY(180deg); }
+@keyframes dnaScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-60px); }
 }
 
-@keyframes topDot {
-  0%, 100% { transform: translateY(0) scale(1); opacity: 1; }
-  50% { transform: translateY(10px) scale(0.7); opacity: 0.5; }
+@keyframes rungPulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
 }
 
-@keyframes bottomDot {
-  0%, 100% { transform: translateY(0) scale(0.7); opacity: 0.5; }
-  50% { transform: translateY(-10px) scale(1); opacity: 1; }
-}
-
-@keyframes lineStretch {
-  0%, 100% { height: 50px; opacity: 0.7; }
-  50% { height: 30px; opacity: 0.4; }
+@keyframes dotGlow {
+  0%, 100% { opacity: 0.4; r: 3; }
+  50% { opacity: 0.8; r: 4; }
 }
 
 @media (max-width: 768px) {
