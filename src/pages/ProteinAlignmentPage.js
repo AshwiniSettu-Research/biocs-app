@@ -8,7 +8,7 @@ const EXAMPLE_SEQ1 = 'MVLSPADKTNVKAAWGKVGAHAGEYGAEALERMFLSFPTTKTYFPHFDLSH';
 const EXAMPLE_SEQ2 = 'MVHLTPEEKSAVTALWGKVNVDEVGGEALGRLLVVYPWTQRFFESFGDLST';
 
 const DEFAULT_PARAMS = {
-  alpha: 0.5, beta: 0.3, gap_open: -10.0, gap_extend: -1.0, bandwidth: 5,
+  alpha: 20, w: 15, gamma: 0.5, g_base: -10.0, g_ext: -1.0, bandwidth: '',
 };
 
 const numOrDefault = (value, fallback) => {
@@ -170,13 +170,14 @@ function ProteinAlignmentPage() {
       const payload = {
         seq1: seq1.trim(),
         seq2: seq2.trim(),
-        algorithm: 'cm_blosum_nw',
+        algorithm: 'lare_nw',
         params: {
-          alpha: numOrDefault(params.alpha, 0.5),
-          beta: numOrDefault(params.beta, 0.3),
-          gap_open: numOrDefault(params.gap_open, -10.0),
-          gap_extend: numOrDefault(params.gap_extend, -1.0),
-          bandwidth: numOrDefault(params.bandwidth, 5),
+          alpha: numOrDefault(params.alpha, 20),
+          w: numOrDefault(params.w, 15),
+          gamma: numOrDefault(params.gamma, 0.5),
+          g_base: numOrDefault(params.g_base, -10.0),
+          g_ext: numOrDefault(params.g_ext, -1.0),
+          bandwidth: params.bandwidth === '' || params.bandwidth === null ? 'auto' : numOrDefault(params.bandwidth, 'auto'),
         },
       };
 
@@ -206,7 +207,7 @@ function ProteinAlignmentPage() {
     <div className="tool-page">
       {/* Tool Header */}
       <div className="tool-header">
-        <h1>CM-BLOSUM-NW Protein Sequence Alignment</h1>
+        <h1>LARE-NW Protein Sequence Alignment</h1>
         <div className="tool-header-actions">
           <button className="tool-header-btn">Documentation</button>
           <button className="tool-header-btn">Help</button>
@@ -224,18 +225,19 @@ function ProteinAlignmentPage() {
 
         {/* Algorithm Info Banner */}
         <div className="algo-info-banner">
-          <div className="algo-info-title">Compositionally Modulated BLOSUM Needleman-Wunsch</div>
+          <div className="algo-info-title">Locally Adaptive Relative-Entropy Needleman-Wunsch</div>
           <div className="algo-info-desc">
-            A novel pairwise sequence alignment algorithm that integrates BLOSUM62 substitution scores
-            with Information Content (IC) and Dipeptide Composition (DPC) modulation,
-            using affine gap penalties and banded dynamic programming for efficient computation.
+            A novel pairwise sequence alignment algorithm that corrects BLOSUM62 substitution scores
+            position-by-position using a Bayesian (Dirichlet-multinomial) estimate of local amino-acid
+            composition, and modulates gap penalties by local sequence entropy &mdash; computed with a
+            banded Gotoh dynamic program.
           </div>
           <div className="algo-info-tags">
             <span className="algo-tag">BLOSUM62</span>
-            <span className="algo-tag">Information Content</span>
-            <span className="algo-tag">Dipeptide Log-Odds</span>
-            <span className="algo-tag">Affine Gap (Gotoh 1982)</span>
-            <span className="algo-tag">Banded DP</span>
+            <span className="algo-tag">Relative-Entropy Ψ Correction</span>
+            <span className="algo-tag">Dirichlet Posterior</span>
+            <span className="algo-tag">Entropy-Adaptive Gaps</span>
+            <span className="algo-tag">Banded Gotoh DP</span>
           </div>
         </div>
 
@@ -295,45 +297,57 @@ function ProteinAlignmentPage() {
                 <label>Alpha (&alpha;)</label>
                 <input
                   type="number"
-                  step="0.1"
+                  step="1"
                   value={params.alpha}
                   onChange={(e) => handleParamChange('alpha', e.target.value)}
-                  min="0"
-                  max="1"
+                  min="0.1"
+                  max="1000"
                 />
-                <span className="param-hint">Information Content modulation weight (0-1)</span>
+                <span className="param-hint">Dirichlet concentration for the local-composition posterior</span>
               </div>
               <div className="param-group">
-                <label>Beta (&beta;)</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  value={params.beta}
-                  onChange={(e) => handleParamChange('beta', e.target.value)}
-                  min="0"
-                  max="1"
-                />
-                <span className="param-hint">Dipeptide Composition modulation weight (0-1)</span>
-              </div>
-              <div className="param-group">
-                <label>Gap Open</label>
+                <label>Window (w)</label>
                 <input
                   type="number"
                   step="1"
-                  value={params.gap_open}
-                  onChange={(e) => handleParamChange('gap_open', e.target.value)}
+                  value={params.w}
+                  onChange={(e) => handleParamChange('w', e.target.value)}
+                  min="1"
+                  max="100"
                 />
-                <span className="param-hint">Affine gap opening penalty (Gotoh model)</span>
+                <span className="param-hint">Sliding-window half-width for local composition (1-100)</span>
+              </div>
+              <div className="param-group">
+                <label>Gamma (&gamma;)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={params.gamma}
+                  onChange={(e) => handleParamChange('gamma', e.target.value)}
+                  min="0"
+                  max="10"
+                />
+                <span className="param-hint">Entropy sensitivity for adaptive gap penalties (0-10)</span>
+              </div>
+              <div className="param-group">
+                <label>Gap Base</label>
+                <input
+                  type="number"
+                  step="1"
+                  value={params.g_base}
+                  onChange={(e) => handleParamChange('g_base', e.target.value)}
+                />
+                <span className="param-hint">Gap-opening baseline penalty (high-entropy limit)</span>
               </div>
               <div className="param-group">
                 <label>Gap Extend</label>
                 <input
                   type="number"
                   step="0.5"
-                  value={params.gap_extend}
-                  onChange={(e) => handleParamChange('gap_extend', e.target.value)}
+                  value={params.g_ext}
+                  onChange={(e) => handleParamChange('g_ext', e.target.value)}
                 />
-                <span className="param-hint">Affine gap extension penalty</span>
+                <span className="param-hint">Affine gap-extension penalty</span>
               </div>
               <div className="param-group">
                 <label>Bandwidth (k)</label>
@@ -342,9 +356,10 @@ function ProteinAlignmentPage() {
                   value={params.bandwidth}
                   onChange={(e) => handleParamChange('bandwidth', e.target.value)}
                   min="1"
-                  max="50"
+                  max="500"
+                  placeholder="auto"
                 />
-                <span className="param-hint">Banded DP width for computational efficiency (1-50)</span>
+                <span className="param-hint">Banded DP half-width; leave blank for adaptive (auto)</span>
               </div>
             </div>
           </div>
@@ -373,7 +388,7 @@ function ProteinAlignmentPage() {
         {loading && (
           <div className="loading-overlay">
             <div className="spinner"></div>
-            <span>Running CM-BLOSUM-NW alignment...</span>
+            <span>Running LARE-NW alignment...</span>
           </div>
         )}
 

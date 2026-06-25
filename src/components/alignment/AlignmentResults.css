@@ -867,3 +867,94 @@
   .alignment-pos { width: 40px; }
   .match-line { margin-left: 98px; }
 }
+
+/* === LARE-NW per-position tracks (Ψ, entropy, gap penalty) === */
+.lare-track-block {
+  margin-bottom: 16px;
+}
+
+.lare-track-name {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #455a64;
+  margin-bottom: 4px;
+}
+
+.lare-track {
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  height: 110px;
+  width: 100%;
+  background: #fafbfc;
+  border: 1px solid #e0e4e8;
+  border-radius: 4px;
+  padding: 4px;
+  overflow: hidden;
+}
+
+.lare-track .lare-bar {
+  flex: 1 1 0;
+  min-width: 1px;
+  border-radius: 1px 1px 0 0;
+  transition: opacity 0.15s;
+}
+
+.lare-track .lare-bar:hover {
+  opacity: 0.6;
+}
+
+/* Signed (diverging) track for Ψ corrections */
+.lare-track-signed {
+  display: flex;
+  align-items: stretch;
+  gap: 1px;
+  height: 140px;
+  width: 100%;
+  background: #fafbfc;
+  border: 1px solid #e0e4e8;
+  border-radius: 4px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.lare-track-col {
+  flex: 1 1 0;
+  min-width: 1px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.lare-track-uphalf {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.lare-track-downhalf {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.lare-track-midline {
+  height: 1px;
+  background: #b0bec5;
+}
+
+.lare-track-col .lare-bar {
+  width: 100%;
+  border-radius: 1px 1px 0 0;
+}
+
+.lare-track-col .lare-bar-down {
+  border-radius: 0 0 1px 1px;
+}
+
+.lare-track-col:hover .lare-bar {
+  opacity: 0.6;
+}

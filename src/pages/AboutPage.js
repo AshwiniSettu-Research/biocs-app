@@ -26,16 +26,17 @@ function AboutPage() {
           <h2 className="about-section-title">Platform Tools</h2>
           <div className="about-tools">
             <div className="about-tool-block about-tool-teal">
-              <h3>CM-BLOSUM-NW Protein Sequence Alignment</h3>
+              <h3>LARE-NW Protein Sequence Alignment</h3>
               <p>
                 A pairwise protein sequence alignment tool built on the Needleman-Wunsch global alignment algorithm,
-                enhanced with a Composite Matrix (CM) scoring system. The CM integrates three scoring components:
-                the standard BLOSUM62 substitution matrix, residue-level information content derived from
-                position-specific frequency analysis, and dipeptide log-odds scores capturing contextual
-                amino acid pairing preferences. The algorithm employs affine gap penalties with separate
-                gap-open and gap-extend costs, and uses banded dynamic programming to improve computational
-                efficiency on long sequences. Users can modulate the contribution of information content
-                (alpha) and dipeptide composition (beta) to fine-tune alignment sensitivity.
+                enhanced with Locally Adaptive Relative-Entropy (LARE) scoring. Rather than using a fixed
+                substitution matrix, LARE-NW corrects each BLOSUM62 score position-by-position with a relative-entropy
+                term Ψ derived from a Dirichlet-multinomial posterior estimate of the local amino-acid composition,
+                using the BLOSUM62-implicit background frequencies (Yu &amp; Altschul, 2005). Gap-opening penalties are
+                modulated by local sequence entropy, so gaps are cheaper in low-complexity regions and costlier in
+                structured ones. The algorithm uses a banded three-matrix Gotoh dynamic program with corrected
+                initialization (Flouri et al., 2015) for efficiency on long sequences. Users can tune the posterior
+                concentration (alpha), window half-width (w), and entropy sensitivity (gamma).
               </p>
             </div>
             <div className="about-tool-block about-tool-purple">

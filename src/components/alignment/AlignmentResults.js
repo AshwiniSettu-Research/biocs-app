@@ -2,50 +2,123 @@ import React, { useState } from 'react';
 import { downloadJSON } from '../../utils/api';
 import './AlignmentResults.css';
 
+// LARE-NW substitution categories -> CSS class + match-line symbol.
 const CATEGORY_TO_CSS = {
   identical: 'res-match',
-  conservative: 'res-conservative',
-  semi_conservative: 'res-semi',
-  non_conservative: 'res-mismatch',
+  similar: 'res-conservative',
+  mismatch: 'res-mismatch',
   gap: 'res-gap',
 };
 
 const CATEGORY_TO_SYMBOL = {
   identical: '|',
-  conservative: ':',
-  semi_conservative: '.',
-  non_conservative: ' ',
+  similar: ':',
+  mismatch: ' ',
   gap: ' ',
 };
+
+/**
+ * Generic per-position track: renders an array of {pos, value} as a bar plot.
+ * `mode='unsigned'` draws bars up from the baseline (e.g. entropy in [0,1]).
+ * `mode='signed'` draws diverging bars from a centre line (e.g. Ψ corrections).
+ */
+function PositionTrack({ points, mode = 'unsigned', color = '#1a5276', negColor = '#c62828', formatValue }) {
+  if (!points || points.length === 0) {
+    return <p className="chart-desc">No data available.</p>;
+  }
+  const values = points.map((p) => p.value);
+  const maxAbs = Math.max(...values.map((v) => Math.abs(v)), 1e-9);
+  const maxVal = Math.max(...values);
+  const minVal = Math.min(...values);
+  const fmt = formatValue || ((v) => v.toFixed(3));
+
+  if (mode === 'signed') {
+    return (
+      <div className="lare-track lare-track-signed">
+        {points.map((p, i) => {
+          const h = (Math.abs(p.value) / maxAbs) * 50; // half-height %
+          const positive = p.value >= 0;
+          return (
+            <div key={i} className="lare-track-col" title={`Pos ${p.pos}: ${fmt(p.value)}`}>
+              <div className="lare-track-uphalf">
+                {positive && (
+                  <div className="lare-bar" style={{ height: `${h}%`, background: color }}></div>
+                )}
+              </div>
+              <div className="lare-track-midline"></div>
+              <div className="lare-track-downhalf">
+                {!positive && (
+                  <div className="lare-bar lare-bar-down" style={{ height: `${h}%`, background: negColor }}></div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  // unsigned: normalise within [min, max] so variation is visible
+  const span = maxVal - minVal || 1;
+  return (
+    <div className="lare-track">
+      {points.map((p, i) => {
+        const h = 10 + ((p.value - minVal) / span) * 90; // 10–100%
+        return (
+          <div
+            key={i}
+            className="lare-bar"
+            style={{ height: `${h}%`, background: color }}
+            title={`Pos ${p.pos}: ${fmt(p.value)}`}
+          ></div>
+        );
+      })}
+    </div>
+  );
+}
 
 function AlignmentResults({ results }) {
   const [activeTab, setActiveTab] = useState('overview');
 
   if (!results || results.length === 0) return null;
-  const result = results[0]; // CM-BLOSUM-NW only
+  const result = results[0]; // LARE-NW: single pairwise result
 
   const handleExportJSON = () => {
-    downloadJSON(result, 'cm-blosum-nw-alignment');
+    downloadJSON(result, 'lare-nw-alignment');
   };
 
   const tabs = [
     { id: 'overview', label: 'Overview' },
     { id: 'alignment', label: 'Pairwise Alignment' },
-    { id: 'composition', label: 'Compositional Analysis' },
-    { id: 'conservation', label: 'Conservation & Scoring' },
-    { id: 'references', label: 'Database References' },
+    { id: 'psi', label: 'Ψ Correction' },
+    { id: 'complexity', label: 'Complexity & Gaps' },
+    { id: 'references', label: 'References' },
   ];
+
+  // Substitution-class counts derived from the result.
+  const len = result.alignment_length || 0;
+  const identicalCount = result.matches || 0;
+  const similarCount = Math.max(0, (result.similarity_count || 0) - identicalCount);
+  const mismatchCount = Math.max(0, (len - (result.gaps || 0)) - (result.similarity_count || 0));
+  const gapCount = result.gaps || 0;
+  const pct = (c) => (len ? (100 * c) / len : 0);
 
   // === OVERVIEW TAB ===
   const renderOverview = () => {
-    const bd = result.scoring_breakdown || {};
+    const segs = [
+      { key: 'identical', label: 'Identical', count: identicalCount, cls: 'bar-identical', legend: 'legend-identical' },
+      { key: 'similar', label: 'Similar (BLOSUM62 > 0)', count: similarCount, cls: 'bar-conservative', legend: 'legend-conservative' },
+      { key: 'mismatch', label: 'Mismatch (BLOSUM62 ≤ 0)', count: mismatchCount, cls: 'bar-non-conservative', legend: 'legend-non-conservative' },
+      { key: 'gap', label: 'Gaps', count: gapCount, cls: 'bar-gap', legend: 'legend-gap' },
+    ];
+
     return (
       <div className="tab-content">
         {/* Score Summary */}
         <div className="score-summary">
           <div className="score-main">
             <span className="score-number">{result.score}</span>
-            <span className="score-label">Alignment Score</span>
+            <span className="score-label">LARE-NW Score (half-bits)</span>
           </div>
           <div className="score-metrics">
             <div className="metric-card metric-identity">
@@ -53,11 +126,11 @@ function AlignmentResults({ results }) {
               <span className="metric-name">Identity</span>
             </div>
             <div className="metric-card metric-similarity">
-              <span className="metric-value">{bd.similarity_pct || 0}%</span>
+              <span className="metric-value">{result.similarity}%</span>
               <span className="metric-name">Similarity</span>
             </div>
             <div className="metric-card metric-gaps">
-              <span className="metric-value">{bd.gap_pct || 0}%</span>
+              <span className="metric-value">{result.gap_pct}%</span>
               <span className="metric-name">Gaps</span>
             </div>
           </div>
@@ -81,33 +154,40 @@ function AlignmentResults({ results }) {
         <div className="breakdown-section">
           <h4>Substitution Classification (BLOSUM62)</h4>
           <div className="stacked-bar">
-            {bd.identical_pct > 0 && (
-              <div className="bar-segment bar-identical" style={{ width: `${bd.identical_pct}%` }}
-                title={`Identical: ${bd.identical} (${bd.identical_pct}%)`}></div>
-            )}
-            {bd.conservative_pct > 0 && (
-              <div className="bar-segment bar-conservative" style={{ width: `${bd.conservative_pct}%` }}
-                title={`Conservative: ${bd.conservative} (${bd.conservative_pct}%)`}></div>
-            )}
-            {bd.semi_conservative_pct > 0 && (
-              <div className="bar-segment bar-semi" style={{ width: `${bd.semi_conservative_pct}%` }}
-                title={`Semi-conservative: ${bd.semi_conservative} (${bd.semi_conservative_pct}%)`}></div>
-            )}
-            {bd.non_conservative_pct > 0 && (
-              <div className="bar-segment bar-non-conservative" style={{ width: `${bd.non_conservative_pct}%` }}
-                title={`Non-conservative: ${bd.non_conservative} (${bd.non_conservative_pct}%)`}></div>
-            )}
-            {bd.gap_pct > 0 && (
-              <div className="bar-segment bar-gap" style={{ width: `${bd.gap_pct}%` }}
-                title={`Gaps: ${bd.gaps} (${bd.gap_pct}%)`}></div>
-            )}
+            {segs.map((s) => pct(s.count) > 0 && (
+              <div
+                key={s.key}
+                className={`bar-segment ${s.cls}`}
+                style={{ width: `${pct(s.count)}%` }}
+                title={`${s.label}: ${s.count} (${pct(s.count).toFixed(1)}%)`}
+              ></div>
+            ))}
           </div>
           <div className="bar-legend">
-            <span className="legend-item"><span className="legend-color legend-identical"></span>Identical ({bd.identical})</span>
-            <span className="legend-item"><span className="legend-color legend-conservative"></span>Conservative ({bd.conservative})</span>
-            <span className="legend-item"><span className="legend-color legend-semi"></span>Semi-conservative ({bd.semi_conservative})</span>
-            <span className="legend-item"><span className="legend-color legend-non-conservative"></span>Non-conservative ({bd.non_conservative})</span>
-            <span className="legend-item"><span className="legend-color legend-gap"></span>Gaps ({bd.gaps})</span>
+            {segs.map((s) => (
+              <span key={s.key} className="legend-item">
+                <span className={`legend-color ${s.legend}`}></span>{s.label} ({s.count})
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* LARE-NW signature metrics */}
+        <div className="breakdown-section">
+          <h4>LARE-NW Relative-Entropy Metrics</h4>
+          <div className="stats-grid">
+            <div className="stat-item">
+              <span className="stat-value">{result.mean_psi}</span>
+              <span className="stat-label">Mean Ψ (half-bits)</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-value">{result.mean_entropy_seq1}</span>
+              <span className="stat-label">Mean Entropy — Seq 1</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-value">{result.mean_entropy_seq2}</span>
+              <span className="stat-label">Mean Entropy — Seq 2</span>
+            </div>
           </div>
         </div>
 
@@ -128,10 +208,6 @@ function AlignmentResults({ results }) {
           <div className="stat-item">
             <span className="stat-value">{result.gaps}</span>
             <span className="stat-label">Gaps</span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-value">{result.gap_opens}</span>
-            <span className="stat-label">Gap Opens</span>
           </div>
           <div className="stat-item">
             <span className="stat-value">{result.seq1_length}</span>
@@ -192,12 +268,12 @@ function AlignmentResults({ results }) {
         const c1 = chunk1[j];
         const c2 = chunk2[j];
         const posData = result.position_scores ? result.position_scores[i + j] : null;
-        const category = posData ? posData.category : (c1 === '-' || c2 === '-' ? 'gap' : 'non_conservative');
+        const category = posData ? posData.category : (c1 === '-' || c2 === '-' ? 'gap' : 'mismatch');
 
         const cls = CATEGORY_TO_CSS[category] || 'res-mismatch';
         matchChars.push(CATEGORY_TO_SYMBOL[category] || ' ');
-        colored1.push(<span key={`1-${i+j}`} className={cls}>{c1}</span>);
-        colored2.push(<span key={`2-${i+j}`} className={cls}>{c2}</span>);
+        colored1.push(<span key={`1-${i + j}`} className={cls}>{c1}</span>);
+        colored2.push(<span key={`2-${i + j}`} className={cls}>{c2}</span>);
 
         if (c1 !== '-') runningPos1++;
         if (c2 !== '-') runningPos2++;
@@ -231,220 +307,118 @@ function AlignmentResults({ results }) {
       <div className="tab-content">
         <div className="alignment-legend">
           <span className="legend-item"><span className="legend-color legend-identical"></span>Identical (|)</span>
-          <span className="legend-item"><span className="legend-color legend-conservative"></span>Conservative (:) BLOSUM62 &ge; 1</span>
-          <span className="legend-item"><span className="legend-color legend-semi"></span>Semi-conservative (.) BLOSUM62 &ge; 0</span>
-          <span className="legend-item"><span className="legend-color legend-non-conservative"></span>Non-conservative BLOSUM62 &lt; 0</span>
+          <span className="legend-item"><span className="legend-color legend-conservative"></span>Similar (:) BLOSUM62 &gt; 0</span>
+          <span className="legend-item"><span className="legend-color legend-non-conservative"></span>Mismatch BLOSUM62 &le; 0</span>
           <span className="legend-item"><span className="legend-color legend-gap"></span>Gap</span>
         </div>
         <div className="alignment-viz">{blocks}</div>
+        {result.position_scores_truncated && (
+          <p className="chart-desc" style={{ marginTop: '8px', fontStyle: 'italic' }}>
+            Per-column colouring shows the first {result.position_scores.length} of {result.alignment_length} columns; remaining columns are coloured by gap detection only.
+          </p>
+        )}
       </div>
     );
   };
 
-  // === COMPOSITION TAB ===
-  const renderComposition = () => {
-    const comp = result.compositional_analysis;
-    if (!comp) return <div className="tab-content"><p>No compositional data available.</p></div>;
-
-    const aacData = [];
-    const allAA = Object.keys(comp.seq1_aac || {}).sort();
-    allAA.forEach(aa => {
-      aacData.push({
-        aa,
-        seq1: (comp.seq1_aac[aa] || 0) * 100,
-        seq2: (comp.seq2_aac[aa] || 0) * 100,
-      });
-    });
-
-    const maxAAC = Math.max(...aacData.map(d => Math.max(d.seq1, d.seq2)), 1);
-
-    // IC data
-    const icData = [];
-    allAA.forEach(aa => {
-      if ((comp.seq1_ic && comp.seq1_ic[aa]) || (comp.seq2_ic && comp.seq2_ic[aa])) {
-        icData.push({
-          aa,
-          seq1: comp.seq1_ic ? comp.seq1_ic[aa] : 0,
-          seq2: comp.seq2_ic ? comp.seq2_ic[aa] : 0,
-        });
-      }
-    });
+  // === Ψ CORRECTION TAB ===
+  const renderPsi = () => {
+    const positions = (result.position_scores || []).filter((p) => p.psi !== null && p.psi !== undefined);
+    // Most influential columns (largest |Ψ|).
+    const ranked = [...positions].sort((a, b) => Math.abs(b.psi) - Math.abs(a.psi)).slice(0, 12);
 
     return (
       <div className="tab-content">
-        {/* AAC Bar Chart */}
         <div className="chart-section">
-          <h4>Amino Acid Composition (%)</h4>
-          <p className="chart-desc">Frequency of each amino acid in both input sequences. Compositional bias reveals evolutionary and functional characteristics.</p>
-          <div className="bar-chart">
-            {aacData.map(d => (
-              <div key={d.aa} className="bar-group">
-                <div className="bar-pair">
-                  <div className="bar bar-seq1" style={{ height: `${(d.seq1 / maxAAC) * 120}px` }}
-                    title={`Seq 1: ${d.seq1.toFixed(1)}%`}></div>
-                  <div className="bar bar-seq2" style={{ height: `${(d.seq2 / maxAAC) * 120}px` }}
-                    title={`Seq 2: ${d.seq2.toFixed(1)}%`}></div>
-                </div>
-                <span className="bar-label">{d.aa}</span>
-              </div>
-            ))}
-          </div>
-          <div className="chart-legend">
-            <span className="legend-item"><span className="legend-color" style={{ background: '#1565c0' }}></span>Sequence 1</span>
-            <span className="legend-item"><span className="legend-color" style={{ background: '#e65100' }}></span>Sequence 2</span>
-          </div>
+          <h4>Ψ Relative-Entropy Correction (per match column)</h4>
+          <p className="chart-desc">
+            LARE-NW adjusts each BLOSUM62 match score by a position-specific term
+            Ψ(i,j) = 2·[log₂(p_a/π_a(i)) + log₂(p_b/π_b(j))], where π is a Dirichlet-posterior
+            estimate of <em>local</em> composition. <strong>Positive Ψ</strong> (blue, above the line) rewards matches in
+            compositionally unusual contexts; <strong>negative Ψ</strong> (red, below) discounts matches in
+            low-complexity or biased regions. Mean Ψ = {result.mean_psi} half-bits.
+          </p>
+          <PositionTrack points={positions.map((p) => ({ pos: p.pos, value: p.psi }))} mode="signed" />
+          <div className="plot-x-label">Match column (N→C)</div>
         </div>
 
-        {/* Information Content */}
         <div className="chart-section">
-          <h4>Information Content (bits)</h4>
-          <p className="chart-desc">IC = -log2(freq). Higher IC indicates rarer amino acids, which contribute more to the CM-BLOSUM-NW scoring via the &alpha; parameter.</p>
+          <h4>Most Influential Columns</h4>
+          <p className="chart-desc">Columns where the local-composition correction most strongly altered the score.</p>
           <div className="ic-table">
             <div className="ic-header">
-              <span className="ic-cell ic-aa">AA</span>
-              <span className="ic-cell">Seq 1 IC</span>
-              <span className="ic-cell">Seq 2 IC</span>
-              <span className="ic-cell">Difference</span>
+              <span className="ic-cell ic-aa">Col</span>
+              <span className="ic-cell">Res 1 / Res 2</span>
+              <span className="ic-cell">BLOSUM62</span>
+              <span className="ic-cell">Ψ</span>
+              <span className="ic-cell">Adjusted</span>
             </div>
-            {icData.filter(d => d.seq1 < 18 || d.seq2 < 18).map(d => (
-              <div key={d.aa} className="ic-row">
-                <span className="ic-cell ic-aa">{d.aa}</span>
-                <span className="ic-cell">{d.seq1.toFixed(2)}</span>
-                <span className="ic-cell">{d.seq2.toFixed(2)}</span>
-                <span className={`ic-cell ${Math.abs(d.seq1 - d.seq2) > 2 ? 'ic-diff-high' : ''}`}>
-                  {(d.seq1 - d.seq2).toFixed(2)}
-                </span>
+            {ranked.map((p) => (
+              <div key={p.pos} className="ic-row">
+                <span className="ic-cell ic-aa">{p.pos}</span>
+                <span className="ic-cell">{p.res1} / {p.res2}</span>
+                <span className="ic-cell">{p.blosum62}</span>
+                <span className={`ic-cell ${p.psi < 0 ? 'ic-diff-high' : ''}`}>{p.psi > 0 ? '+' : ''}{p.psi}</span>
+                <span className="ic-cell">{(p.blosum62 + p.psi).toFixed(2)}</span>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* Dipeptide Composition */}
-        <div className="chart-section">
-          <h4>Top Dipeptide Frequencies</h4>
-          <p className="chart-desc">Most frequent dipeptides in each sequence. DPC modulation (weighted by &beta;) captures local sequence context beyond single amino acids.</p>
-          <div className="dpc-comparison">
-            <div className="dpc-column">
-              <h5>Sequence 1</h5>
-              {comp.seq1_dpc_top && Object.entries(comp.seq1_dpc_top).slice(0, 10).map(([dp, freq]) => (
-                <div key={dp} className="dpc-item">
-                  <span className="dpc-name">{dp}</span>
-                  <div className="dpc-bar-container">
-                    <div className="dpc-bar dpc-bar-seq1" style={{ width: `${freq * 100 * 5}%` }}></div>
-                  </div>
-                  <span className="dpc-value">{(freq * 100).toFixed(1)}%</span>
-                </div>
-              ))}
-            </div>
-            <div className="dpc-column">
-              <h5>Sequence 2</h5>
-              {comp.seq2_dpc_top && Object.entries(comp.seq2_dpc_top).slice(0, 10).map(([dp, freq]) => (
-                <div key={dp} className="dpc-item">
-                  <span className="dpc-name">{dp}</span>
-                  <div className="dpc-bar-container">
-                    <div className="dpc-bar dpc-bar-seq2" style={{ width: `${freq * 100 * 5}%` }}></div>
-                  </div>
-                  <span className="dpc-value">{(freq * 100).toFixed(1)}%</span>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </div>
     );
   };
 
-  // === CONSERVATION TAB ===
-  const renderConservation = () => {
-    const positions = result.position_scores || [];
-    const plotData = result.conservation_plot || [];
-
-    const getHeatColor = (score) => {
-      if (score === null) return '#e0e0e0';
-      if (score >= 4) return '#1b5e20';
-      if (score >= 2) return '#43a047';
-      if (score >= 1) return '#66bb6a';
-      if (score >= 0) return '#fff9c4';
-      if (score >= -1) return '#ffcc80';
-      if (score >= -2) return '#ef9a9a';
-      return '#c62828';
-    };
-
+  // === COMPLEXITY & GAPS TAB ===
+  const renderComplexity = () => {
     return (
       <div className="tab-content">
-        {/* Sliding Window Conservation Plot */}
-        {plotData.length > 0 && (
-          <div className="chart-section">
-            <h4>Conservation Profile (Sliding Window)</h4>
-            <p className="chart-desc">Local identity percentage computed over a sliding window. Peaks indicate conserved regions; troughs indicate divergent or gap-rich segments.</p>
-            <div className="conservation-plot">
-              <div className="plot-y-axis">
-                <span>100%</span>
-                <span>50%</span>
-                <span>0%</span>
-              </div>
-              <div className="plot-area">
-                {plotData.map((point, i) => (
-                  <div
-                    key={i}
-                    className="plot-bar"
-                    style={{ height: `${point.identity}%` }}
-                    title={`Position ${point.position}: ${point.identity}% identity`}
-                  ></div>
-                ))}
-              </div>
-            </div>
-            <div className="plot-x-label">Alignment Position</div>
-          </div>
-        )}
-
-        {/* Per-Position BLOSUM62 Heatmap */}
         <div className="chart-section">
-          <h4>Per-Position BLOSUM62 Score Heatmap</h4>
-          <p className="chart-desc">BLOSUM62 substitution score at each alignment position. Green = favorable substitution, yellow = neutral, red = unfavorable, grey = gap.</p>
-          <div className="heatmap-container">
-            <div className="heatmap-row">
-              {positions.map((p, i) => (
-                <div
-                  key={i}
-                  className="heatmap-cell"
-                  style={{ backgroundColor: getHeatColor(p.blosum62) }}
-                  title={`Pos ${p.pos}: ${p.res1}/${p.res2} = ${p.blosum62 !== null ? p.blosum62 : 'gap'}`}
-                >
-                  <span className="heatmap-res">{p.res1}</span>
-                </div>
-              ))}
-            </div>
-            <div className="heatmap-row">
-              {positions.map((p, i) => (
-                <div
-                  key={i}
-                  className="heatmap-cell"
-                  style={{ backgroundColor: getHeatColor(p.blosum62) }}
-                >
-                  <span className="heatmap-res">{p.res2}</span>
-                </div>
-              ))}
-            </div>
+          <h4>Local Sequence Complexity (Normalized Shannon Entropy)</h4>
+          <p className="chart-desc">
+            Per-residue normalized entropy H_norm ∈ [0, 1] of the local composition window. Low values mark
+            low-complexity / repetitive regions; high values mark compositionally diverse regions. This drives
+            both the Ψ correction and the adaptive gap penalty.
+          </p>
+          <div className="lare-track-block">
+            <span className="lare-track-name">Sequence 1</span>
+            <PositionTrack points={result.entropy_seq1} mode="unsigned" color="#1565c0" />
           </div>
-          <div className="heatmap-legend">
-            <span className="heatmap-legend-label">Score:</span>
-            <div className="heatmap-gradient">
-              <span style={{ background: '#c62828' }}>&le;-3</span>
-              <span style={{ background: '#ef9a9a' }}>-2</span>
-              <span style={{ background: '#ffcc80' }}>-1</span>
-              <span style={{ background: '#fff9c4' }}>0</span>
-              <span style={{ background: '#66bb6a' }}>1-2</span>
-              <span style={{ background: '#43a047' }}>3-4</span>
-              <span style={{ background: '#1b5e20' }}>&ge;5</span>
-              <span style={{ background: '#e0e0e0' }}>Gap</span>
-            </div>
+          <div className="lare-track-block">
+            <span className="lare-track-name">Sequence 2</span>
+            <PositionTrack points={result.entropy_seq2} mode="unsigned" color="#e65100" />
           </div>
-          {result.position_scores_truncated && (
-            <p className="chart-desc" style={{ marginTop: '8px', fontStyle: 'italic' }}>
-              Heatmap shows first 500 of {result.alignment_length} positions. See Pairwise Alignment tab for full visualization.
+          {result.entropy_truncated && (
+            <p className="chart-desc" style={{ fontStyle: 'italic' }}>
+              Long sequence — entropy track downsampled for display.
             </p>
           )}
+        </div>
+
+        <div className="chart-section">
+          <h4>Entropy-Adaptive Gap-Open Penalty</h4>
+          <p className="chart-desc">
+            Position-specific gap-opening penalty G_open(i) = G_base·(1 + γ·H_norm(i)). Gaps are made
+            <strong> cheaper</strong> (shorter bars) in low-complexity regions and <strong>costlier</strong> (taller bars)
+            in high-entropy structured regions — instead of one flat gap cost.
+          </p>
+          <div className="lare-track-block">
+            <span className="lare-track-name">Sequence 1</span>
+            <PositionTrack
+              points={result.gap_penalty_seq1.map((p) => ({ pos: p.pos, value: -p.value }))}
+              mode="unsigned"
+              color="#6a1b9a"
+              formatValue={(v) => (-v).toFixed(2)}
+            />
+          </div>
+          <div className="lare-track-block">
+            <span className="lare-track-name">Sequence 2</span>
+            <PositionTrack
+              points={result.gap_penalty_seq2.map((p) => ({ pos: p.pos, value: -p.value }))}
+              mode="unsigned"
+              color="#6a1b9a"
+              formatValue={(v) => (-v).toFixed(2)}
+            />
+          </div>
         </div>
       </div>
     );
@@ -457,31 +431,42 @@ function AlignmentResults({ results }) {
         <div className="ref-section">
           <h4>Algorithm Reference</h4>
           <div className="ref-card">
-            <div className="ref-title">CM-BLOSUM-NW: Compositionally Modulated BLOSUM Needleman-Wunsch</div>
+            <div className="ref-title">LARE-NW: Locally Adaptive Relative-Entropy Needleman-Wunsch</div>
             <div className="ref-desc">
-              This tool implements a novel pairwise sequence alignment algorithm that enhances
-              the standard Needleman-Wunsch dynamic programming approach with compositional
-              modulation of the BLOSUM62 substitution matrix.
+              A global pairwise alignment algorithm that corrects BLOSUM62 substitution scores position-by-position
+              using a Bayesian (Dirichlet-multinomial) estimate of local amino-acid composition, and modulates
+              gap penalties by local sequence entropy. The dynamic program remains globally optimal because all
+              position-dependent terms are precomputed before the banded Gotoh recursion.
             </div>
             <div className="ref-formula">
-              <strong>Hybrid Scoring Formula:</strong>
-              <div className="formula">M(a,b) = BLOSUM62(a,b) + &alpha; &middot; IC(a,b) + &beta; &middot; DPC(a,b)</div>
+              <strong>Locally Corrected Match Score:</strong>
+              <div className="formula">S_LARE(i,j) = BLOSUM62(a,b) + Ψ(i,j)</div>
+              <div className="formula">Ψ(i,j) = 2·[log₂(p_a / π_a(i)) + log₂(p_b / π_b(j))]</div>
+              <div className="formula">π_a(i) = (n_a(i) + α·p_a) / (|W_i| + α)</div>
+              <div className="formula">G_open(i) = G_base·(1 + γ·H_norm(i))</div>
             </div>
             <div className="ref-components">
               <div className="ref-component">
-                <strong>BLOSUM62</strong> &mdash; Blocks Substitution Matrix derived from observed amino acid substitutions in conserved protein blocks (Henikoff &amp; Henikoff, 1992).
+                <strong>Ψ (Relative-Entropy Correction)</strong> &mdash; per-position log-odds of background vs. local
+                posterior composition, in half-bit units. Rewards matches in unusual local contexts; discounts
+                matches in low-complexity regions.
               </div>
               <div className="ref-component">
-                <strong>IC (Information Content)</strong> &mdash; Measures the rarity of amino acids based on sequence composition. IC(a) = -log2(freq(a)). Rare residue matches receive higher scores.
+                <strong>π (Dirichlet posterior)</strong> &mdash; sliding-window posterior amino-acid frequencies with
+                concentration α (default 20) and window half-width w (default 15), shrinking local counts toward the
+                BLOSUM62-implicit background.
               </div>
               <div className="ref-component">
-                <strong>DPC (Dipeptide Composition)</strong> &mdash; Log-odds ratio of observed dipeptide frequency vs. expected from individual amino acid frequencies. Captures local sequence context.
+                <strong>Entropy-Adaptive Gaps</strong> &mdash; gap-opening penalty scales with normalized Shannon
+                entropy H_norm via sensitivity γ (default 0.5), so gaps are cheaper in repetitive regions.
               </div>
               <div className="ref-component">
-                <strong>Affine Gap Penalties</strong> &mdash; Gotoh (1982) model with separate gap-open and gap-extend costs, implemented via three DP matrices (M, X, Y).
+                <strong>BLOSUM62-implicit background (Yu &amp; Altschul, 2005)</strong> &mdash; the correct background
+                frequencies for the Ψ decomposition, back-calculated from the integer BLOSUM62 matrix.
               </div>
               <div className="ref-component">
-                <strong>Banded DP</strong> &mdash; Restricts computation to a diagonal band of width 2k+1, reducing time complexity from O(mn) to O(m&middot;k).
+                <strong>Banded Gotoh DP</strong> &mdash; three-matrix affine-gap recursion restricted to a diagonal
+                band, with Flouri et al. (2015) initialization, reducing memory to O(m·k).
               </div>
             </div>
           </div>
@@ -502,9 +487,9 @@ function AlignmentResults({ results }) {
               <div className="db-name">PDB (RCSB)</div>
               <div className="db-desc">Protein Data Bank &mdash; 3D structural data of biological macromolecules</div>
             </a>
-            <a href="https://pfam.xfam.org/" target="_blank" rel="noopener noreferrer" className="db-link-card">
-              <div className="db-name">Pfam</div>
-              <div className="db-desc">Protein families database with HMM-based domain classification</div>
+            <a href="https://www.ebi.ac.uk/jdispatcher/psa/emboss_needle" target="_blank" rel="noopener noreferrer" className="db-link-card">
+              <div className="db-name">EMBOSS Needle</div>
+              <div className="db-desc">Reference Needleman-Wunsch global alignment service for comparison</div>
             </a>
             <a href="https://www.ebi.ac.uk/interpro/" target="_blank" rel="noopener noreferrer" className="db-link-card">
               <div className="db-name">InterPro</div>
@@ -526,14 +511,19 @@ function AlignmentResults({ results }) {
               <span className="lit-journal">J. Mol. Biol., 48(3), 443-453.</span>
             </div>
             <div className="lit-item">
-              <span className="lit-authors">Gotoh, O. (1982)</span>
-              <span className="lit-title">An improved algorithm for matching biological sequences.</span>
-              <span className="lit-journal">J. Mol. Biol., 162(3), 705-708.</span>
-            </div>
-            <div className="lit-item">
               <span className="lit-authors">Henikoff, S. &amp; Henikoff, J.G. (1992)</span>
               <span className="lit-title">Amino acid substitution matrices from protein blocks.</span>
               <span className="lit-journal">Proc. Natl. Acad. Sci. USA, 89(22), 10915-10919.</span>
+            </div>
+            <div className="lit-item">
+              <span className="lit-authors">Yu, Y.K. &amp; Altschul, S.F. (2005)</span>
+              <span className="lit-title">The construction of amino acid substitution matrices for the comparison of proteins with non-standard compositions.</span>
+              <span className="lit-journal">Bioinformatics, 21(7), 902-911.</span>
+            </div>
+            <div className="lit-item">
+              <span className="lit-authors">Flouri, T. et al. (2015)</span>
+              <span className="lit-title">Are all global alignment algorithms and implementations correct?</span>
+              <span className="lit-journal">bioRxiv, 10.1101/031500.</span>
             </div>
           </div>
         </div>
@@ -544,7 +534,7 @@ function AlignmentResults({ results }) {
   return (
     <div className="alignment-results">
       <div className="results-header">
-        <span>CM-BLOSUM-NW Alignment Results</span>
+        <span>LARE-NW Alignment Results</span>
         <div className="results-header-actions">
           <button className="export-btn" onClick={handleExportJSON}>Download JSON</button>
           <span className="results-score-badge">Score: {result.score}</span>
@@ -568,8 +558,8 @@ function AlignmentResults({ results }) {
       <div className="results-body">
         {activeTab === 'overview' && renderOverview()}
         {activeTab === 'alignment' && renderAlignment()}
-        {activeTab === 'composition' && renderComposition()}
-        {activeTab === 'conservation' && renderConservation()}
+        {activeTab === 'psi' && renderPsi()}
+        {activeTab === 'complexity' && renderComplexity()}
         {activeTab === 'references' && renderReferences()}
       </div>
     </div>

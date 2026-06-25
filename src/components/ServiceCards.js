@@ -60,8 +60,8 @@ function ServiceCards() {
         </div>
         <div className="highlight-divider"></div>
         <div className="highlight-item">
-          <span className="highlight-value">CM-BLOSUM-NW</span>
-          <span className="highlight-label">Custom Scoring Matrix</span>
+          <span className="highlight-value">LARE-NW</span>
+          <span className="highlight-label">Relative-Entropy Alignment</span>
         </div>
         <div className="highlight-divider"></div>
         <div className="highlight-item">
@@ -89,14 +89,14 @@ function ServiceCards() {
                 </svg>
               </div>
               <h3 className="tool-card-title">Protein Sequence Alignment</h3>
-              <p className="tool-card-algo">CM-BLOSUM-NW Algorithm</p>
+              <p className="tool-card-algo">LARE-NW Algorithm</p>
               <p className="tool-card-desc">
-                Pairwise alignment using a composite scoring matrix that integrates BLOSUM62 substitution scores, information content modulation, and dipeptide log-odds with affine gap penalties and banded dynamic programming.
+                Pairwise alignment that corrects BLOSUM62 scores position-by-position with a Bayesian estimate of local amino-acid composition (relative-entropy Ψ correction) and modulates gap penalties by local sequence entropy, using a banded Gotoh dynamic program.
               </p>
               <div className="tool-card-tags">
                 <span className="tool-tag">BLOSUM62</span>
-                <span className="tool-tag">Affine Gaps</span>
-                <span className="tool-tag">Banded DP</span>
+                <span className="tool-tag">Ψ Correction</span>
+                <span className="tool-tag">Adaptive Gaps</span>
               </div>
               <span className="tool-card-link">Open Tool &rarr;</span>
             </div>

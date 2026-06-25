@@ -16,71 +16,80 @@ jest.mock('../../utils/api', () => ({
 }));
 
 // ---------------------------------------------------------------------------
-// Realistic fixture data matching the actual API response shape
+// Realistic LARE-NW fixture matching the actual /api/align response shape.
+// One entry in the `results` array represents a single pairwise alignment.
 // ---------------------------------------------------------------------------
 const RESULTS_FIXTURE = [
   {
+    algorithm: 'LARE-NW',
+    aligned_seq1: 'MVLSPADKTN',
+    aligned_seq2: 'MV-HTPEEKS',
     score: 112.5,
-    identity: 42.0,
-    alignment_length: 52,
-    matches: 22,
-    mismatches: 28,
-    gaps: 2,
-    gap_opens: 1,
-    seq1_length: 50,
-    seq2_length: 50,
+    alignment_length: 10,
+    identity: 30.0,
+    matches: 3,
+    mismatches: 6,
+    similarity: 50.0,
+    similarity_count: 5,
+    gaps: 1,
+    gap_pct: 10.0,
+    mean_psi: 1.42,
+    mean_entropy_seq1: 0.81,
+    mean_entropy_seq2: 0.76,
     bandwidth_used: 5,
     runtime_seconds: 0.023,
     memory_peak_mb: 1.2,
-    aligned_seq1: 'MVLSPADKTN',
-    aligned_seq2: 'MVHLTPEEKS',
-    position_scores: [
-      { pos: 1, res1: 'M', res2: 'M', blosum62: 5, category: 'identical' },
-      { pos: 2, res1: 'V', res2: 'V', blosum62: 4, category: 'identical' },
-      { pos: 3, res1: 'L', res2: 'H', blosum62: -3, category: 'non_conservative' },
-      { pos: 4, res1: 'S', res2: 'L', blosum62: -2, category: 'non_conservative' },
-      { pos: 5, res1: 'P', res2: 'T', blosum62: -1, category: 'non_conservative' },
-      { pos: 6, res1: 'A', res2: 'P', blosum62: -1, category: 'non_conservative' },
-      { pos: 7, res1: 'D', res2: 'E', blosum62: 2, category: 'conservative' },
-      { pos: 8, res1: 'K', res2: 'E', blosum62: 1, category: 'semi_conservative' },
-      { pos: 9, res1: 'T', res2: 'K', blosum62: -1, category: 'non_conservative' },
-      { pos: 10, res1: 'N', res2: 'S', blosum62: 1, category: 'semi_conservative' },
-    ],
-    position_scores_truncated: false,
-    scoring_breakdown: {
-      identical: 22,
-      identical_pct: 42.3,
-      conservative: 8,
-      conservative_pct: 15.4,
-      semi_conservative: 6,
-      semi_conservative_pct: 11.5,
-      non_conservative: 14,
-      non_conservative_pct: 26.9,
-      gaps: 2,
-      gap_pct: 3.8,
-      similarity_pct: 69.2,
-    },
+    seq1_length: 9,
+    seq2_length: 9,
     params_used: {
-      alpha: 0.5,
-      beta: 0.3,
-      gap_open: -10.0,
-      gap_extend: -1.0,
+      alpha: 20,
+      w: 15,
+      gamma: 0.5,
+      g_base: -10.0,
+      g_ext: -1.0,
       bandwidth: 5,
     },
-    compositional_analysis: {
-      seq1_aac: { A: 0.12, D: 0.04, E: 0.06, G: 0.08, K: 0.1, L: 0.08, M: 0.02 },
-      seq2_aac: { A: 0.06, D: 0.02, E: 0.1, G: 0.06, K: 0.08, L: 0.1, M: 0.02 },
-      seq1_ic: { A: 3.06, D: 4.64, E: 4.06, G: 3.64, K: 3.32, L: 3.64, M: 5.64 },
-      seq2_ic: { A: 4.06, D: 5.64, E: 3.32, G: 4.06, K: 3.64, L: 3.32, M: 5.64 },
-      seq1_dpc_top: { PA: 0.04, AD: 0.03, DK: 0.03, KT: 0.03, TN: 0.03 },
-      seq2_dpc_top: { PE: 0.04, EE: 0.03, EK: 0.03, KS: 0.03, LT: 0.03 },
-    },
-    conservation_plot: [
-      { position: 1, identity: 100 },
-      { position: 2, identity: 80 },
-      { position: 3, identity: 40 },
-      { position: 4, identity: 20 },
-      { position: 5, identity: 60 },
+    position_scores: [
+      { pos: 1, res1: 'M', res2: 'M', blosum62: 5, psi: 1.2, category: 'identical' },
+      { pos: 2, res1: 'V', res2: 'V', blosum62: 4, psi: 0.8, category: 'identical' },
+      { pos: 3, res1: 'L', res2: '-', blosum62: null, psi: null, category: 'gap' },
+      { pos: 4, res1: 'S', res2: 'H', blosum62: -1, psi: -0.5, category: 'mismatch' },
+      { pos: 5, res1: 'P', res2: 'T', blosum62: -1, psi: 2.3, category: 'mismatch' },
+      { pos: 6, res1: 'A', res2: 'P', blosum62: -1, psi: -1.1, category: 'mismatch' },
+      { pos: 7, res1: 'D', res2: 'E', blosum62: 2, psi: 1.9, category: 'similar' },
+      { pos: 8, res1: 'K', res2: 'E', blosum62: 1, psi: 0.4, category: 'similar' },
+      { pos: 9, res1: 'T', res2: 'K', blosum62: -1, psi: -0.3, category: 'mismatch' },
+      { pos: 10, res1: 'N', res2: 'S', blosum62: 1, psi: 3.1, category: 'similar' },
+    ],
+    position_scores_truncated: false,
+    entropy_seq1: [
+      { pos: 1, value: 0.92 },
+      { pos: 2, value: 0.88 },
+      { pos: 3, value: 0.75 },
+      { pos: 4, value: 0.61 },
+      { pos: 5, value: 0.83 },
+    ],
+    entropy_seq2: [
+      { pos: 1, value: 0.81 },
+      { pos: 2, value: 0.79 },
+      { pos: 3, value: 0.66 },
+      { pos: 4, value: 0.7 },
+      { pos: 5, value: 0.85 },
+    ],
+    entropy_truncated: false,
+    gap_penalty_seq1: [
+      { pos: 1, value: -14.6 },
+      { pos: 2, value: -14.4 },
+      { pos: 3, value: -13.7 },
+      { pos: 4, value: -13.0 },
+      { pos: 5, value: -14.1 },
+    ],
+    gap_penalty_seq2: [
+      { pos: 1, value: -14.0 },
+      { pos: 2, value: -13.9 },
+      { pos: 3, value: -13.3 },
+      { pos: 4, value: -13.5 },
+      { pos: 5, value: -14.2 },
     ],
   },
 ];
@@ -103,22 +112,31 @@ describe('AlignmentResults', () => {
     render(<AlignmentResults results={RESULTS_FIXTURE} />);
 
     // Header
-    expect(screen.getByText(/CM-BLOSUM-NW Alignment Results/i)).toBeInTheDocument();
+    expect(screen.getByText(/LARE-NW Alignment Results/i)).toBeInTheDocument();
     expect(screen.getByText('Score: 112.5')).toBeInTheDocument();
 
-    // Overview metrics
+    // Overview score block
     expect(screen.getByText('112.5')).toBeInTheDocument(); // score number
-    expect(screen.getByText('Alignment Score')).toBeInTheDocument();
+    expect(screen.getByText(/LARE-NW Score \(half-bits\)/i)).toBeInTheDocument();
 
-    // Identity shown
-    const identityElements = screen.getAllByText('42%');
+    // Identity shown (metric card + identity bar label both render "30%")
+    const identityElements = screen.getAllByText('30%');
     expect(identityElements.length).toBeGreaterThanOrEqual(1);
 
     // Stats grid
     expect(screen.getByText('Alignment Length')).toBeInTheDocument();
-    expect(screen.getByText('52')).toBeInTheDocument();
+    expect(screen.getByText('10')).toBeInTheDocument();
     expect(screen.getByText('Matches')).toBeInTheDocument();
-    expect(screen.getByText('22')).toBeInTheDocument();
+  });
+
+  it('renders LARE-NW relative-entropy metrics in overview', () => {
+    render(<AlignmentResults results={RESULTS_FIXTURE} />);
+
+    expect(screen.getByText(/LARE-NW Relative-Entropy Metrics/i)).toBeInTheDocument();
+    expect(screen.getByText('1.42')).toBeInTheDocument(); // mean_psi
+    expect(screen.getByText(/Mean Ψ \(half-bits\)/i)).toBeInTheDocument();
+    expect(screen.getByText('0.81')).toBeInTheDocument(); // mean_entropy_seq1
+    expect(screen.getByText('0.76')).toBeInTheDocument(); // mean_entropy_seq2
   });
 
   it('switches to the Pairwise Alignment tab and renders alignment visualization', () => {
@@ -136,36 +154,35 @@ describe('AlignmentResults', () => {
     expect(seq2Labels.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('switches to the Compositional Analysis tab', () => {
+  it('switches to the Ψ Correction tab', () => {
     render(<AlignmentResults results={RESULTS_FIXTURE} />);
 
-    fireEvent.click(screen.getByRole('button', { name: /compositional analysis/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Ψ Correction/i }));
 
-    expect(screen.getByText(/Amino Acid Composition/)).toBeInTheDocument();
-    expect(screen.getByText(/Information Content/)).toBeInTheDocument();
-    expect(screen.getByText(/Top Dipeptide Frequencies/)).toBeInTheDocument();
+    expect(screen.getByText(/Ψ Relative-Entropy Correction/i)).toBeInTheDocument();
+    expect(screen.getByText('Most Influential Columns')).toBeInTheDocument();
   });
 
-  it('switches to the Conservation & Scoring tab', () => {
+  it('switches to the Complexity & Gaps tab', () => {
     render(<AlignmentResults results={RESULTS_FIXTURE} />);
 
-    fireEvent.click(screen.getByRole('button', { name: /conservation/i }));
+    fireEvent.click(screen.getByRole('button', { name: /complexity & gaps/i }));
 
-    expect(screen.getByText(/Conservation Profile/)).toBeInTheDocument();
-    expect(screen.getByText(/Per-Position BLOSUM62 Score Heatmap/)).toBeInTheDocument();
+    expect(screen.getByText(/Local Sequence Complexity/i)).toBeInTheDocument();
+    expect(screen.getByText(/Entropy-Adaptive Gap-Open Penalty/i)).toBeInTheDocument();
   });
 
-  it('switches to the Database References tab', () => {
+  it('switches to the References tab', () => {
     render(<AlignmentResults results={RESULTS_FIXTURE} />);
 
-    fireEvent.click(screen.getByRole('button', { name: /database references/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^references$/i }));
 
     expect(screen.getByText('Algorithm Reference')).toBeInTheDocument();
     expect(screen.getByText('Public Database Links')).toBeInTheDocument();
     expect(screen.getByText('UniProt')).toBeInTheDocument();
   });
 
-  it('calls downloadJSON when the export button is clicked', () => {
+  it('calls downloadJSON with the lare-nw filename when the export button is clicked', () => {
     render(<AlignmentResults results={RESULTS_FIXTURE} />);
 
     fireEvent.click(screen.getByRole('button', { name: /download json/i }));
@@ -173,20 +190,31 @@ describe('AlignmentResults', () => {
     expect(api.downloadJSON).toHaveBeenCalledTimes(1);
     expect(api.downloadJSON).toHaveBeenCalledWith(
       RESULTS_FIXTURE[0],
-      'cm-blosum-nw-alignment',
+      'lare-nw-alignment',
     );
   });
 
-  it('renders alignment visualization with colored position scores', () => {
+  it('renders alignment visualization with category-based residue classes', () => {
     render(<AlignmentResults results={RESULTS_FIXTURE} />);
 
     // Switch to alignment tab
     fireEvent.click(screen.getByRole('button', { name: /pairwise alignment/i }));
 
-    // Check that residue characters from the aligned sequences are rendered
-    // The first two residues are M and V (identical)
-    const allSpans = document.querySelectorAll('.res-match');
-    expect(allSpans.length).toBeGreaterThan(0);
+    // Identical positions (pos 1 & 2) map to .res-match
+    const matchSpans = document.querySelectorAll('.res-match');
+    expect(matchSpans.length).toBeGreaterThan(0);
+
+    // 'similar' positions map to .res-conservative
+    const similarSpans = document.querySelectorAll('.res-conservative');
+    expect(similarSpans.length).toBeGreaterThan(0);
+
+    // 'gap' position maps to .res-gap
+    const gapSpans = document.querySelectorAll('.res-gap');
+    expect(gapSpans.length).toBeGreaterThan(0);
+
+    // 'mismatch' positions map to .res-mismatch
+    const mismatchSpans = document.querySelectorAll('.res-mismatch');
+    expect(mismatchSpans.length).toBeGreaterThan(0);
   });
 
   it('renders performance and parameter information in overview', () => {
@@ -196,5 +224,12 @@ describe('AlignmentResults', () => {
     expect(screen.getByText(/0.023s/)).toBeInTheDocument();
     expect(screen.getByText(/1.2 MB/)).toBeInTheDocument();
     expect(screen.getByText('Parameters Used')).toBeInTheDocument();
+
+    // New LARE-NW param tags are rendered from params_used.
+    expect(screen.getByText('alpha=20')).toBeInTheDocument();
+    expect(screen.getByText('gamma=0.5')).toBeInTheDocument();
+    expect(screen.getByText('g_base=-10')).toBeInTheDocument();
+    expect(screen.getByText('g_ext=-1')).toBeInTheDocument();
+    expect(screen.getByText('bandwidth=5')).toBeInTheDocument();
   });
 });
