@@ -13,6 +13,8 @@
 
 # misc
 .DS_Store
+.memsearch/
+.pytest_cache/
 .env.local
 .env.development.local
 .env.test.local
