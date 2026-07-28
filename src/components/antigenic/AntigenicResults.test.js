@@ -3,303 +3,171 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import AntigenicResults from './AntigenicResults';
 import * as api from '../../utils/api';
 
-// ---------------------------------------------------------------------------
-// Mock CSS import
-// ---------------------------------------------------------------------------
 jest.mock('./AntigenicResults.css', () => {});
-
-// ---------------------------------------------------------------------------
-// Mock downloadJSON
-// ---------------------------------------------------------------------------
 jest.mock('../../utils/api', () => ({
   downloadJSON: jest.fn(),
 }));
 
 // ---------------------------------------------------------------------------
-// Fixture: single prediction
+// Binary MLPT-LARE fixtures
 // ---------------------------------------------------------------------------
-const SINGLE_PREDICTION_FIXTURE = {
-  predictions: [
-    {
-      sequence: 'FIASNGVKLV',
-      sequence_length: 10,
-      predicted_class: 'Natural Peptide',
-      confidence: 0.92,
-      antigenicity_score: 1.05,
-      probabilities: {
-        'Cancer Antigenic Peptides': 0.02,
-        'Inactive Peptides-Lung Breast': 0.01,
-        'Moderately Active-Lung Breast': 0.03,
-        'Natural Peptide': 0.92,
-        'Non-Natural Peptide': 0.01,
-        'Very Active-Lung Breast': 0.01,
-      },
-      kt_scores: [1.1, 0.9, 1.2, 1.0, 0.8, 1.3, 1.1, 0.7, 1.0, 1.2],
-      antigenic_regions: [[2, 5]],
-    },
-  ],
-  model_info: {
-    num_classes: 6,
-    accuracy: 0.94,
-    macro_f1: 0.91,
-  },
+const antigenicPred = (over = {}) => ({
+  sequence: 'SLLMWITQC',
+  sequence_length: 9,
+  antigenic: true,
+  predicted_class: 'Antigenic',
+  antigenic_probability: 0.7364,
+  confidence: 0.7364,
+  decision_threshold: 0.455,
+  probabilities: { Antigenic: 0.7364, 'Non-antigenic': 0.2636 },
+  kt_scores: [0.84, 1.24, 1.24, 0.74, 1.06, 1.0, 0.76, 0.85, 0.68],
+  antigenicity_score: 0.9344,
+  antigenic_regions: [[0, 2]],
+  mean_posterior_entropy: 0.9626,
+  warning: null,
+  ...over,
+});
+
+const MODEL_INFO = {
+  model: 'MLPT-LARE',
+  task: 'binary',
+  params: 199225,
+  auc_roc: 0.697,
+  f1: 0.591,
+  mcc: 0.297,
+  decision_threshold: 0.455,
 };
 
-// ---------------------------------------------------------------------------
-// Fixture: batch predictions (multiple)
-// ---------------------------------------------------------------------------
+const SINGLE_PREDICTION_FIXTURE = {
+  predictions: [antigenicPred()],
+  model_info: MODEL_INFO,
+};
+
 const BATCH_PREDICTION_FIXTURE = {
   predictions: [
-    {
-      sequence: 'FIASNGVKLV',
+    antigenicPred(),
+    antigenicPred({
+      sequence: 'AAAAAAAAAA',
       sequence_length: 10,
-      predicted_class: 'Natural Peptide',
-      confidence: 0.92,
-      antigenicity_score: 1.05,
-      probabilities: {
-        'Cancer Antigenic Peptides': 0.02,
-        'Inactive Peptides-Lung Breast': 0.01,
-        'Moderately Active-Lung Breast': 0.03,
-        'Natural Peptide': 0.92,
-        'Non-Natural Peptide': 0.01,
-        'Very Active-Lung Breast': 0.01,
-      },
-      kt_scores: [1.1, 0.9, 1.2, 1.0, 0.8, 1.3, 1.1, 0.7, 1.0, 1.2],
-      antigenic_regions: [[2, 5]],
-    },
-    {
-      sequence: 'GILGFVFTL',
-      sequence_length: 9,
-      predicted_class: 'Very Active-Lung Breast',
-      confidence: 0.78,
-      antigenicity_score: 1.21,
-      probabilities: {
-        'Cancer Antigenic Peptides': 0.05,
-        'Inactive Peptides-Lung Breast': 0.02,
-        'Moderately Active-Lung Breast': 0.1,
-        'Natural Peptide': 0.03,
-        'Non-Natural Peptide': 0.02,
-        'Very Active-Lung Breast': 0.78,
-      },
-      kt_scores: [1.3, 0.8, 1.0, 1.4, 1.2, 1.1, 1.0, 0.9, 1.3],
-      antigenic_regions: [[0, 3], [6, 8]],
-    },
-    {
-      sequence: 'NLVPMVATV',
-      sequence_length: 9,
-      predicted_class: 'Cancer Antigenic Peptides',
-      confidence: 0.65,
-      antigenicity_score: 0.98,
-      probabilities: {
-        'Cancer Antigenic Peptides': 0.65,
-        'Inactive Peptides-Lung Breast': 0.05,
-        'Moderately Active-Lung Breast': 0.1,
-        'Natural Peptide': 0.08,
-        'Non-Natural Peptide': 0.07,
-        'Very Active-Lung Breast': 0.05,
-      },
-      kt_scores: [0.9, 1.1, 1.0, 0.8, 1.2, 1.0, 0.9, 1.1, 1.0],
-      antigenic_regions: [],
-    },
+      antigenic: false,
+      predicted_class: 'Non-antigenic',
+      antigenic_probability: 0.42,
+      confidence: 0.58,
+      probabilities: { Antigenic: 0.42, 'Non-antigenic': 0.58 },
+      kt_scores: [1.044, 1.044, 1.044, 1.044, 1.044, 1.044, 1.044, 1.044, 1.044, 1.044],
+      antigenicity_score: 1.044,
+      antigenic_regions: [[0, 9]],
+      mean_posterior_entropy: 0.81,
+    }),
+    antigenicPred({ sequence: 'EVDPIGHLY', antigenic_probability: 0.751 }),
   ],
-  model_info: {
-    num_classes: 6,
-    accuracy: 0.94,
-    macro_f1: 0.91,
-  },
+  model_info: MODEL_INFO,
 };
 
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
-describe('AntigenicResults', () => {
+describe('AntigenicResults (binary MLPT-LARE)', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
 
   it('renders null when results is null', () => {
-    const { container } = render(
-      <AntigenicResults results={null} confidenceThreshold={0.5} />,
-    );
+    const { container } = render(<AntigenicResults results={null} />);
     expect(container.innerHTML).toBe('');
   });
 
   it('renders null when predictions array is empty', () => {
     const { container } = render(
-      <AntigenicResults
-        results={{ predictions: [], model_info: {} }}
-        confidenceThreshold={0.5}
-      />,
+      <AntigenicResults results={{ predictions: [], model_info: {} }} />,
     );
     expect(container.innerHTML).toBe('');
   });
 
-  it('renders overview tab with prediction summary for a single prediction', () => {
-    render(
-      <AntigenicResults
-        results={SINGLE_PREDICTION_FIXTURE}
-        confidenceThreshold={0.5}
-      />,
-    );
+  it('renders overview with the binary prediction summary', () => {
+    render(<AntigenicResults results={SINGLE_PREDICTION_FIXTURE} />);
 
-    // Header
     expect(screen.getByText('Prediction Results')).toBeInTheDocument();
 
-    // Predicted class badge
-    expect(screen.getByText('Natural Peptide')).toBeInTheDocument();
-
-    // Confidence
-    expect(screen.getByText('92.0%')).toBeInTheDocument();
-    expect(screen.getByText('Confidence')).toBeInTheDocument();
+    // Binary class badge + probability (P(antigenic) and confidence both 73.6%)
+    expect(screen.getByText('Antigenic')).toBeInTheDocument();
+    expect(screen.getAllByText('73.6%').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('P(antigenic)')).toBeInTheDocument();
+    expect(screen.getByText(/threshold 45.5%/)).toBeInTheDocument();
 
     // Sequence details
-    expect(screen.getByText('FIASNGVKLV')).toBeInTheDocument();
-    expect(screen.getByText('10 residues')).toBeInTheDocument();
-    expect(screen.getByText('1.05')).toBeInTheDocument(); // antigenicity score
+    expect(screen.getByText('SLLMWITQC')).toBeInTheDocument();
+    expect(screen.getByText('9 residues')).toBeInTheDocument();
+    expect(screen.getByText('0.9344')).toBeInTheDocument(); // mean K-T
+    expect(screen.getByText('0.9626')).toBeInTheDocument(); // mean posterior entropy
 
     // Model info
-    expect(screen.getByText(/MLPT \(6-class\)/)).toBeInTheDocument();
-    expect(screen.getByText('94.0%')).toBeInTheDocument(); // accuracy
-    expect(screen.getByText('91.0%')).toBeInTheDocument(); // macro f1
+    expect(screen.getByText('MLPT-LARE (binary)')).toBeInTheDocument();
+    expect(screen.getByText('199,225')).toBeInTheDocument();
+    expect(screen.getByText('0.697')).toBeInTheDocument();
 
-    // No batch table for single prediction
     expect(screen.queryByText(/Batch Results/)).not.toBeInTheDocument();
   });
 
-  it('renders batch table for multiple predictions', () => {
-    render(
-      <AntigenicResults
-        results={BATCH_PREDICTION_FIXTURE}
-        confidenceThreshold={0.5}
-      />,
-    );
-
-    // Batch summary heading
-    expect(screen.getByText(/Batch Results \(3 sequences\)/)).toBeInTheDocument();
-
-    // Table headers - use getAllByText since "Sequence" appears multiple times
-    const sequenceElements = screen.getAllByText('Sequence');
-    expect(sequenceElements.length).toBeGreaterThanOrEqual(1);
-
-    // All three sequences should appear (some may appear in both detail and table)
-    expect(screen.getAllByText('FIASNGVKLV').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('GILGFVFTL').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('NLVPMVATV').length).toBeGreaterThanOrEqual(1);
+  it('renders a warning when present', () => {
+    const withWarning = {
+      predictions: [antigenicPred({ warning: 'Truncated to first 25 residues.' })],
+      model_info: MODEL_INFO,
+    };
+    render(<AntigenicResults results={withWarning} />);
+    expect(screen.getByText(/Truncated to first 25 residues/)).toBeInTheDocument();
   });
 
-  it('switches to the Probabilities tab and shows probability distribution', () => {
-    render(
-      <AntigenicResults
-        results={SINGLE_PREDICTION_FIXTURE}
-        confidenceThreshold={0.5}
-      />,
-    );
+  it('renders the batch table for multiple predictions', () => {
+    render(<AntigenicResults results={BATCH_PREDICTION_FIXTURE} />);
+    expect(screen.getByText(/Batch Results \(3 sequences\)/)).toBeInTheDocument();
+    expect(screen.getAllByText('SLLMWITQC').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('AAAAAAAAAA').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('EVDPIGHLY').length).toBeGreaterThanOrEqual(1);
+  });
 
+  it('shows the two-class probability distribution', () => {
+    render(<AntigenicResults results={SINGLE_PREDICTION_FIXTURE} />);
     fireEvent.click(screen.getByRole('button', { name: /probabilities/i }));
-
     expect(screen.getByText('Class Probability Distribution')).toBeInTheDocument();
-
-    // All class names should be displayed as probability labels
-    expect(screen.getByText('Cancer Antigenic Peptides')).toBeInTheDocument();
-    expect(screen.getByText('Inactive Peptides-Lung Breast')).toBeInTheDocument();
-    expect(screen.getByText('Very Active-Lung Breast')).toBeInTheDocument();
+    // Both classes appear as probability labels (badge also renders "Antigenic").
+    expect(screen.getAllByText('Antigenic').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('Non-antigenic')).toBeInTheDocument();
   });
 
   it('switches to the Antigenicity Profile tab', () => {
-    render(
-      <AntigenicResults
-        results={SINGLE_PREDICTION_FIXTURE}
-        confidenceThreshold={0.5}
-      />,
-    );
-
+    render(<AntigenicResults results={SINGLE_PREDICTION_FIXTURE} />);
     fireEvent.click(screen.getByRole('button', { name: /antigenicity profile/i }));
-
     expect(screen.getByText(/Per-Residue Antigenicity/)).toBeInTheDocument();
-    // Legend items - use exact text to avoid ambiguity
-    expect(screen.getByText('Below threshold', { exact: false })).toBeInTheDocument();
-    // Check for the legend color element that indicates antigenic
     const legendItems = document.querySelectorAll('.kt-legend-item');
-    expect(legendItems.length).toBe(3); // Below threshold, Antigenic, Avg Score
+    expect(legendItems.length).toBe(3);
   });
 
-  it('switches to the References tab', () => {
-    render(
-      <AntigenicResults
-        results={SINGLE_PREDICTION_FIXTURE}
-        confidenceThreshold={0.5}
-      />,
-    );
-
+  it('switches to the References tab with MLPT-LARE reference', () => {
+    render(<AntigenicResults results={SINGLE_PREDICTION_FIXTURE} />);
     fireEvent.click(screen.getByRole('button', { name: /references/i }));
-
     expect(screen.getByText(/References & Methods/)).toBeInTheDocument();
-    expect(screen.getByText(/MLPT Model:/)).toBeInTheDocument();
+    expect(screen.getByText(/MLPT-LARE:/)).toBeInTheDocument();
   });
 
   it('calls downloadJSON when the export button is clicked', () => {
-    render(
-      <AntigenicResults
-        results={SINGLE_PREDICTION_FIXTURE}
-        confidenceThreshold={0.5}
-      />,
-    );
-
+    render(<AntigenicResults results={SINGLE_PREDICTION_FIXTURE} />);
     fireEvent.click(screen.getByRole('button', { name: /download json/i }));
-
     expect(api.downloadJSON).toHaveBeenCalledTimes(1);
     expect(api.downloadJSON).toHaveBeenCalledWith(
       SINGLE_PREDICTION_FIXTURE,
-      'mlpt-predictions',
+      'mlpt-lare-predictions',
     );
   });
 
-  it('shows "Below threshold" when confidence is below the threshold', () => {
-    const lowConfResult = {
-      ...SINGLE_PREDICTION_FIXTURE,
-      predictions: [
-        { ...SINGLE_PREDICTION_FIXTURE.predictions[0], confidence: 0.3 },
-      ],
-    };
+  it('selects a different prediction in batch mode via row click', () => {
+    render(<AntigenicResults results={BATCH_PREDICTION_FIXTURE} />);
+    expect(document.querySelector('.pred-class-badge').textContent).toBe('Antigenic');
 
-    render(
-      <AntigenicResults results={lowConfResult} confidenceThreshold={0.5} />,
-    );
-
-    expect(screen.getByText('Below threshold')).toBeInTheDocument();
-  });
-
-  it('does not show "Below threshold" when confidence meets the threshold', () => {
-    render(
-      <AntigenicResults
-        results={SINGLE_PREDICTION_FIXTURE}
-        confidenceThreshold={0.5}
-      />,
-    );
-
-    // Confidence is 0.92, well above 0.5 threshold
-    expect(screen.queryByText('Below threshold')).not.toBeInTheDocument();
-  });
-
-  it('allows selecting a different prediction in batch mode via row click', () => {
-    render(
-      <AntigenicResults
-        results={BATCH_PREDICTION_FIXTURE}
-        confidenceThreshold={0.5}
-      />,
-    );
-
-    // Initially the first prediction's details are shown
-    const initialBadge = document.querySelector('.pred-class-badge');
-    expect(initialBadge.textContent).toBe('Natural Peptide');
-
-    // Click the second row in the batch table (GILGFVFTL)
     const rows = document.querySelectorAll('.batch-row');
     expect(rows.length).toBe(3);
     fireEvent.click(rows[1]);
 
-    // Now the detail section should show the second prediction's class
-    const updatedBadge = document.querySelector('.pred-class-badge');
-    expect(updatedBadge.textContent).toBe('Very Active-Lung Breast');
+    expect(document.querySelector('.pred-class-badge').textContent).toBe('Non-antigenic');
   });
 });

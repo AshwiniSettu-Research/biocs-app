@@ -4,19 +4,23 @@ import ErrorBoundary from '../components/ErrorBoundary';
 import { fetchJSON } from '../utils/api';
 import './AntigenicPeptidePage.css';
 
+// Published cancer T-cell epitopes (NY-ESO-1, MAGE-A3, MART-1, HER2/E75).
 const EXAMPLE_SEQUENCES = [
-  'FIASNGVKLV',
-  'AIGKFLHSAKKFGKAFVGEIMNS',
-  'GILGFVFTL',
-  'NLVPMVATV',
+  'SLLMWITQC',
+  'EVDPIGHLY',
+  'ELAGIGILTV',
+  'KIFGSLAFL',
 ];
+
+// Tuned F1-optimal decision threshold on P(antigenic) for the shipped model.
+const DEFAULT_THRESHOLD = 0.455;
 
 function AntigenicPeptidePage() {
   const [inputText, setInputText] = useState('');
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [confidenceThreshold, setConfidenceThreshold] = useState(0.5);
+  const [threshold, setThreshold] = useState(DEFAULT_THRESHOLD);
 
   const fileRef = useRef(null);
   const resultsRef = useRef(null);
@@ -41,7 +45,7 @@ function AntigenicPeptidePage() {
     setInputText('');
     setResults(null);
     setError(null);
-    setConfidenceThreshold(0.5);
+    setThreshold(DEFAULT_THRESHOLD);
   };
 
   const parseSequences = (text) => {
@@ -113,7 +117,7 @@ function AntigenicPeptidePage() {
     try {
       const data = await fetchJSON('/api/mlpt/predict', {
         method: 'POST',
-        body: JSON.stringify({ sequences }),
+        body: JSON.stringify({ sequences, threshold }),
         signal: controller.signal,
       });
 
@@ -142,7 +146,7 @@ function AntigenicPeptidePage() {
     <div className="tool-page">
       {/* Tool Header */}
       <div className="tool-header antigenic-header">
-        <h1>MLPT Antigenic Peptide Predictor</h1>
+        <h1>MLPT-LARE Antigenic Peptide Predictor</h1>
         <div className="tool-header-actions">
           <button className="tool-header-btn">Documentation</button>
           <button className="tool-header-btn">Help</button>
@@ -160,20 +164,23 @@ function AntigenicPeptidePage() {
 
         {/* Algorithm Info Banner */}
         <div className="algo-info-banner antigenic-banner">
-          <div className="algo-info-title">Multi-Level Pooling-based Transformer (MLPT)</div>
+          <div className="algo-info-title">Multi-Level Pooling Transformer over LARE-NW posteriors (MLPT-LARE)</div>
           <div className="algo-info-desc">
-            A novel deep learning model for T-cell epitope prediction combining enhanced
-            Kolaskar &amp; Tongaonkar feature extraction with SA-BWK optimization,
-            Adaptive Depthwise Multi-Kernel Atrous Module (ADMAM), and 1D Swin Transformer
-            with multi-level pooling for 6-class antigenic peptide classification.
+            A deep-learning model that predicts whether a peptide is a
+            cancer T-cell antigenic epitope. It runs a Multi-Level Pooling
+            Transformer (ADMAM &rarr; 1-D Swin blocks &rarr; masked pooling) over a
+            per-residue stream of LARE-NW Bayesian posterior features and
+            Kolaskar &amp; Tongaonkar propensity, fused with physicochemical
+            descriptors. Trained on curated CEDAR + IEDB cancer peptides;
+            outputs a probability plus a class at a tunable decision threshold.
           </div>
           <div className="algo-info-tags">
-            <span className="algo-tag">Swin Transformer</span>
+            <span className="algo-tag">LARE-NW Posteriors</span>
             <span className="algo-tag">ADMAM</span>
-            <span className="algo-tag">K-T Algorithm</span>
-            <span className="algo-tag">SA-BWK Optimization</span>
+            <span className="algo-tag">1D Swin Transformer</span>
+            <span className="algo-tag">K-T Propensity</span>
             <span className="algo-tag">Multi-Level Pooling</span>
-            <span className="algo-tag">6-Class Classification</span>
+            <span className="algo-tag">Binary Classifier</span>
           </div>
         </div>
 
@@ -219,20 +226,23 @@ function AntigenicPeptidePage() {
           <div className="step-body">
             <div className="options-row">
               <div className="param-group">
-                <label>Confidence Threshold</label>
+                <label>Decision Threshold — P(antigenic)</label>
                 <div className="slider-row">
                   <input
                     type="range"
                     min="0"
                     max="1"
-                    step="0.05"
-                    value={confidenceThreshold}
-                    onChange={(e) => setConfidenceThreshold(parseFloat(e.target.value))}
+                    step="0.005"
+                    value={threshold}
+                    onChange={(e) => setThreshold(parseFloat(e.target.value))}
                   />
-                  <span className="slider-value">{confidenceThreshold.toFixed(2)}</span>
+                  <span className="slider-value">{threshold.toFixed(3)}</span>
                 </div>
                 <span className="param-hint">
-                  Minimum confidence to flag predictions (display only, does not affect prediction)
+                  Probability cutoff for the Antigenic / Non-antigenic label.
+                  Default {DEFAULT_THRESHOLD} is the F1-optimal operating point;
+                  MLPT-LARE is a ranking model, so this is not 0.5. Higher =
+                  stricter (fewer positives).
                 </span>
               </div>
             </div>
@@ -262,7 +272,7 @@ function AntigenicPeptidePage() {
         {loading && (
           <div className="loading-overlay">
             <div className="spinner antigenic-spinner"></div>
-            <span>Running MLPT prediction...</span>
+            <span>Running MLPT-LARE prediction...</span>
           </div>
         )}
 
@@ -270,10 +280,7 @@ function AntigenicPeptidePage() {
         {results && (
           <div ref={resultsRef}>
             <ErrorBoundary>
-              <AntigenicResults
-                results={results}
-                confidenceThreshold={confidenceThreshold}
-              />
+              <AntigenicResults results={results} />
             </ErrorBoundary>
           </div>
         )}

@@ -1,0 +1,268 @@
+/* Tool 3 results. Reuses global .results-header/.results-tabs/.results-tab/
+   .results-body/.tab-content/.section-title/.mono/.export-btn/.ref-* classes
+   (bundled by the other tools); defines only construct-specific visuals. */
+
+.vaccine-results {
+  margin-top: 28px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+
+/* Summary block */
+.vaccine-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.vsum-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding-right: 24px;
+  border-right: 1px solid #eee;
+}
+.vsum-fitness {
+  font-size: 40px;
+  font-weight: 800;
+  color: #4338ca;
+  line-height: 1;
+}
+.vsum-fitness-label {
+  font-size: 12px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.selected-by-badge {
+  margin-top: 8px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 12px;
+}
+.vsum-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.vsum-card {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 120px;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border: 1px solid #eef2f7;
+  border-radius: 8px;
+}
+.vsum-card-val {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+}
+.vsum-card-lbl {
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* Construct + generic tables */
+.construct-table-wrap {
+  overflow-x: auto;
+}
+.construct-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.construct-table th,
+.construct-table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid #eef2f7;
+  white-space: nowrap;
+}
+.construct-table th {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #94a3b8;
+  background: #fafbfc;
+}
+.construct-table tbody tr:hover {
+  background: #f8fafc;
+}
+.cell-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 130px;
+}
+.cell-num {
+  font-variant-numeric: tabular-nums;
+  color: #475569;
+}
+.vbar-track {
+  flex: 1;
+  height: 8px;
+  background: #eef2f7;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.vbar-fill {
+  height: 100%;
+  border-radius: 4px;
+}
+.alleles-cell {
+  white-space: normal;
+  font-size: 12px;
+  color: #475569;
+  max-width: 460px;
+}
+.muted {
+  color: #cbd5e1;
+}
+
+.pool-summary {
+  margin-top: 16px;
+  padding: 10px 14px;
+  background: #f5f3ff;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #4b5563;
+}
+
+/* Population coverage */
+.pop-cov-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.pop-cov-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pop-cov-label {
+  width: 200px;
+  font-size: 13px;
+  color: #475569;
+}
+.pop-cov-label.target {
+  font-weight: 700;
+  color: #4338ca;
+}
+.pop-cov-bar-container {
+  flex: 1;
+  height: 20px;
+  background: #eef2f7;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.pop-cov-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #6d28d9, #4f46e5);
+  border-radius: 4px;
+}
+.pop-cov-value {
+  width: 60px;
+  text-align: right;
+  font-weight: 600;
+  font-size: 13px;
+  color: #334155;
+}
+
+/* Optimizer comparison */
+.method-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.method-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.method-label {
+  width: 130px;
+  font-size: 13px;
+  color: #475569;
+}
+.method-bar-container {
+  flex: 1;
+  height: 18px;
+  background: #f1f5f9;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.method-bar {
+  height: 100%;
+  border-radius: 4px;
+}
+.method-value {
+  width: 66px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  color: #334155;
+}
+
+/* Trajectory */
+.traj-svg {
+  width: 100%;
+  max-width: 640px;
+  height: auto;
+  display: block;
+}
+.traj-label {
+  font-size: 11px;
+  fill: #94a3b8;
+}
+.traj-empty {
+  color: #94a3b8;
+  font-size: 13px;
+  padding: 12px 0;
+}
+.traj-legend {
+  display: flex;
+  gap: 20px;
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 6px;
+}
+.traj-swatch {
+  display: inline-block;
+  width: 18px;
+  height: 3px;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+.traj-swatch.best {
+  background: #6a1b9a;
+}
+.traj-swatch.mean {
+  background: #bbb;
+}
+
+.weights-readout {
+  margin-top: 18px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.vnote {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.5;
+  margin: 12px 0 20px;
+  padding: 10px 12px;
+  background: #fafafa;
+  border-left: 3px solid #4f46e5;
+  border-radius: 3px;
+}

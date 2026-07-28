@@ -38,27 +38,27 @@ afterEach(() => {
 const PREDICTION_API_RESPONSE = {
   predictions: [
     {
-      sequence: 'FIASNGVKLV',
-      sequence_length: 10,
-      predicted_class: 'Natural Peptide',
-      confidence: 0.92,
-      antigenicity_score: 1.05,
-      probabilities: {
-        'Cancer Antigenic Peptides': 0.02,
-        'Inactive Peptides-Lung Breast': 0.01,
-        'Moderately Active-Lung Breast': 0.03,
-        'Natural Peptide': 0.92,
-        'Non-Natural Peptide': 0.01,
-        'Very Active-Lung Breast': 0.01,
-      },
-      kt_scores: [1.1, 0.9, 1.2, 1.0, 0.8, 1.3, 1.1, 0.7, 1.0, 1.2],
-      antigenic_regions: [[2, 5]],
+      sequence: 'SLLMWITQC',
+      sequence_length: 9,
+      antigenic: true,
+      predicted_class: 'Antigenic',
+      antigenic_probability: 0.7364,
+      confidence: 0.7364,
+      decision_threshold: 0.455,
+      probabilities: { Antigenic: 0.7364, 'Non-antigenic': 0.2636 },
+      kt_scores: [0.84, 1.24, 1.24, 0.74, 1.06, 1.0, 0.76, 0.85, 0.68],
+      antigenicity_score: 0.9344,
+      antigenic_regions: [[0, 2]],
+      mean_posterior_entropy: 0.9626,
+      warning: null,
     },
   ],
   model_info: {
-    num_classes: 6,
-    accuracy: 0.94,
-    macro_f1: 0.91,
+    model: 'MLPT-LARE',
+    params: 199225,
+    auc_roc: 0.697,
+    f1: 0.591,
+    mcc: 0.297,
   },
 };
 
@@ -77,7 +77,7 @@ describe('AntigenicPeptidePage', () => {
     render(<AntigenicPeptidePage />);
 
     // Header
-    expect(screen.getByText(/MLPT Antigenic Peptide Predictor/i)).toBeInTheDocument();
+    expect(screen.getByText(/MLPT-LARE Antigenic Peptide Predictor/i)).toBeInTheDocument();
 
     // Step headers
     expect(screen.getByText(/STEP 1/)).toBeInTheDocument();
@@ -142,6 +142,11 @@ describe('AntigenicPeptidePage', () => {
 
     expect(await screen.findByTestId('antigenic-results')).toBeInTheDocument();
     expect(screen.getByText('Predictions: 1')).toBeInTheDocument();
+
+    // The tuned decision threshold is sent to the API.
+    const body = JSON.parse(global.fetch.mock.calls[0][1].body);
+    expect(body.sequences).toContain('FIASNGVKLV');
+    expect(body).toHaveProperty('threshold', 0.455);
   });
 
   it('fills textarea when "Load Example Sequences" is clicked', () => {
@@ -150,9 +155,9 @@ describe('AntigenicPeptidePage', () => {
     fireEvent.click(screen.getByRole('button', { name: /load example/i }));
 
     const textarea = getMainTextarea();
-    expect(textarea.value).toContain('FIASNGVKLV');
-    expect(textarea.value).toContain('GILGFVFTL');
-    expect(textarea.value).toContain('NLVPMVATV');
+    expect(textarea.value).toContain('SLLMWITQC');
+    expect(textarea.value).toContain('EVDPIGHLY');
+    expect(textarea.value).toContain('ELAGIGILTV');
 
     // 4 example sequences
     expect(screen.getByText(/4 sequences detected/i)).toBeInTheDocument();

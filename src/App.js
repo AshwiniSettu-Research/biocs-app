@@ -6,6 +6,7 @@ import Footer from './components/Footer';
 import LandingPage from './pages/LandingPage';
 import ProteinAlignmentPage from './pages/ProteinAlignmentPage';
 import AntigenicPeptidePage from './pages/AntigenicPeptidePage';
+import VaccineDesignerPage from './pages/VaccineDesignerPage';
 import AboutPage from './pages/AboutPage';
 import NotFoundPage from './pages/NotFoundPage';
 
@@ -19,6 +20,7 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/service/protein-alignment" element={<ProteinAlignmentPage />} />
           <Route path="/service/antigenic-peptide" element={<AntigenicPeptidePage />} />
+          <Route path="/service/vaccine-designer" element={<VaccineDesignerPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
