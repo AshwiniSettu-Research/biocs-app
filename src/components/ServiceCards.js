@@ -55,7 +55,7 @@ function ServiceCards() {
       {/* Highlights Strip */}
       <section className="highlights-strip">
         <div className="highlight-item">
-          <span className="highlight-value">2</span>
+          <span className="highlight-value">3</span>
           <span className="highlight-label">Active Tools</span>
         </div>
         <div className="highlight-divider"></div>
@@ -65,13 +65,13 @@ function ServiceCards() {
         </div>
         <div className="highlight-divider"></div>
         <div className="highlight-item">
-          <span className="highlight-value">MLPT</span>
-          <span className="highlight-label">Transformer Model</span>
+          <span className="highlight-value">MLPT-LARE</span>
+          <span className="highlight-label">Antigenicity Transformer</span>
         </div>
         <div className="highlight-divider"></div>
         <div className="highlight-item">
-          <span className="highlight-value">6-Class</span>
-          <span className="highlight-label">Peptide Classification</span>
+          <span className="highlight-value">SA-BWK</span>
+          <span className="highlight-label">Vaccine Construct Designer</span>
         </div>
       </section>
 
@@ -82,12 +82,6 @@ function ServiceCards() {
           <Link to="/service/protein-alignment" className="tool-card tool-card-teal">
             <div className="tool-card-accent"></div>
             <div className="tool-card-body">
-              <div className="tool-card-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 6h16M4 12h10M4 18h14" />
-                  <circle cx="20" cy="12" r="2" />
-                </svg>
-              </div>
               <h3 className="tool-card-title">Protein Sequence Alignment</h3>
               <p className="tool-card-algo">LARE-NW Algorithm</p>
               <p className="tool-card-desc">
@@ -105,21 +99,32 @@ function ServiceCards() {
           <Link to="/service/antigenic-peptide" className="tool-card tool-card-purple">
             <div className="tool-card-accent"></div>
             <div className="tool-card-body">
-              <div className="tool-card-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="3" />
-                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
-                </svg>
-              </div>
               <h3 className="tool-card-title">Antigenic Peptide Predictor</h3>
-              <p className="tool-card-algo">MLPT Deep Learning Model</p>
+              <p className="tool-card-algo">MLPT-LARE Deep Learning Model</p>
               <p className="tool-card-desc">
-                T-cell epitope prediction using a Multi-Level Pooling-based Transformer that classifies peptide sequences into six antigenic categories including viral, bacterial, tumor, and allergen-associated peptides.
+                Binary prediction of cancer T-cell antigenic epitopes using a Multi-Level Pooling Transformer over LARE-NW Bayesian posterior features, Kolaskar &amp; Tongaonkar propensity, and physicochemical descriptors.
               </p>
               <div className="tool-card-tags">
                 <span className="tool-tag">Swin Transformer</span>
-                <span className="tool-tag">6-Class</span>
+                <span className="tool-tag">LARE-NW Posteriors</span>
                 <span className="tool-tag">T-cell Epitope</span>
+              </div>
+              <span className="tool-card-link">Open Tool &rarr;</span>
+            </div>
+          </Link>
+
+          <Link to="/service/vaccine-designer" className="tool-card tool-card-indigo">
+            <div className="tool-card-accent"></div>
+            <div className="tool-card-body">
+              <h3 className="tool-card-title">Multi-Epitope Vaccine Designer</h3>
+              <p className="tool-card-algo">SA-BWK Multi-Objective Optimiser</p>
+              <p className="tool-card-desc">
+                Selects a K-peptide vaccine construct from a candidate pool that jointly maximises MLPT-LARE antigenicity, LARE-NW conservation, and HLA population coverage, via a discrete Self-improved Black-Winged Kite metaheuristic.
+              </p>
+              <div className="tool-card-tags">
+                <span className="tool-tag">SA-BWK</span>
+                <span className="tool-tag">HLA Coverage</span>
+                <span className="tool-tag">Multi-Objective</span>
               </div>
               <span className="tool-card-link">Open Tool &rarr;</span>
             </div>

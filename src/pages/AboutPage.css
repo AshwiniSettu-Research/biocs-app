@@ -81,6 +81,10 @@
   background: linear-gradient(135deg, #4a148c, #6a1b9a);
 }
 
+.about-tool-indigo {
+  background: linear-gradient(135deg, #3730a3, #6d28d9);
+}
+
 /* Researcher Info */
 .about-researcher {
   padding: 20px 24px;

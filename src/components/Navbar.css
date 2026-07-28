@@ -1,37 +1,54 @@
 .navbar {
-  background-color: #b0b0b0;
-  border-top: 1px solid #999;
-  border-bottom: 1px solid #999;
+  background: var(--navy-800);
+  border-bottom: 3px solid var(--teal-600);
 }
 
 .nav-list {
   display: flex;
-  justify-content: space-around;
   align-items: center;
-  max-width: 1200px;
+  max-width: var(--maxw);
   margin: 0 auto;
-  padding: 0;
+  padding: 0 12px;
 }
 
 .nav-item {
-  flex: 1;
   text-align: center;
   position: relative;
 }
 
-.nav-item a {
+.nav-item > a {
   display: block;
-  padding: 12px 20px;
-  color: #1a1a1a;
-  font-size: 16px;
-  font-weight: 500;
-  transition: all 0.2s;
+  padding: 14px 22px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  transition: color 0.18s, background 0.18s;
+  position: relative;
+}
+
+.nav-item > a::after {
+  content: '';
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  bottom: 0;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--teal-400);
+  transform: scaleX(0);
+  transition: transform 0.2s ease;
 }
 
 .nav-item:hover > a,
 .nav-item.active > a {
-  background-color: #8a8a8a;
-  color: white;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.nav-item:hover > a::after,
+.nav-item.active > a::after {
+  transform: scaleX(1);
 }
 
 /* Dropdown menu */
@@ -43,30 +60,45 @@
   position: absolute;
   top: 100%;
   left: 0;
-  min-width: 240px;
-  background-color: #3a3a3a;
-  border: 1px solid #555;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  min-width: 260px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  box-shadow: var(--shadow-lg);
   z-index: 100;
-  animation: dropdownFade 0.15s ease;
+  overflow: hidden;
+  animation: dropdownFade 0.16s ease;
 }
 
 @keyframes dropdownFade {
-  from { opacity: 0; transform: translateY(-4px); }
+  from { opacity: 0; transform: translateY(-6px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .dropdown-item {
   display: block;
-  padding: 12px 20px;
-  color: #ddd;
-  font-size: 14px;
-  font-weight: 500;
+  padding: 13px 20px;
+  color: var(--text);
+  font-size: 13.5px;
+  font-weight: 600;
   transition: all 0.15s;
   text-align: left;
+  border-left: 3px solid transparent;
 }
 
 .dropdown-item:hover {
-  background-color: #00838f;
-  color: white;
+  background: var(--surface-2);
+  color: var(--teal-700);
+  border-left-color: var(--teal-500);
+}
+
+@media (max-width: 768px) {
+  .nav-list {
+    overflow-x: auto;
+  }
+  .nav-item a {
+    padding: 12px 15px;
+    white-space: nowrap;
+    font-size: 13px;
+  }
 }

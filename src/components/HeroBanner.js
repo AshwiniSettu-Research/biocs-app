@@ -63,9 +63,12 @@ function HeroBanner() {
         </svg>
       </div>
       <div className="hero-content">
+        <span className="hero-eyebrow">Computational Biology</span>
         <h1 className="hero-title">Biosequence Analysis Platform</h1>
         <p className="hero-subtitle">
-          Advanced computational tools for protein sequence alignment and antigenic peptide prediction — powered by custom algorithms and deep learning.
+          A unified suite of computational tools for protein sequence alignment,
+          cancer antigenic-peptide prediction, and multi-epitope vaccine design &mdash;
+          built on custom algorithms, deep learning, and metaheuristic optimisation.
         </p>
         <div className="hero-actions">
           <Link to="/service/protein-alignment" className="hero-btn hero-btn-primary">
@@ -73,6 +76,9 @@ function HeroBanner() {
           </Link>
           <Link to="/service/antigenic-peptide" className="hero-btn hero-btn-secondary">
             Peptide Predictor
+          </Link>
+          <Link to="/service/vaccine-designer" className="hero-btn hero-btn-secondary">
+            Vaccine Designer
           </Link>
         </div>
       </div>

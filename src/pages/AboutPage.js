@@ -1,4 +1,5 @@
 import React from 'react';
+import ResearchTeam from '../components/ResearchTeam';
 import './AboutPage.css';
 
 function AboutPage() {
@@ -40,17 +41,33 @@ function AboutPage() {
               </p>
             </div>
             <div className="about-tool-block about-tool-purple">
-              <h3>MLPT Antigenic Peptide Predictor</h3>
+              <h3>MLPT-LARE Antigenic Peptide Predictor</h3>
               <p>
-                A deep learning-based T-cell epitope prediction system powered by the Multi-Level Pooling-based
-                Transformer (MLPT) architecture. The model uses a Swin Transformer backbone with an Adaptive
-                Dual-stream Multi-scale Attention Module (ADMAM) for feature extraction, combined with a
-                K-T Algorithm for sequence encoding and SA-BWK (Simulated Annealing with Bayesian-Weighted Kernels)
-                optimization for training stability. The classifier performs six-class categorization of peptide
-                sequences, identifying viral antigenic peptides, bacterial antigenic peptides, tumor antigenic
-                peptides (cancer-associated), allergen-associated peptides, autoimmune-associated peptides, and
-                non-antigenic peptides. A configurable confidence threshold allows users to control prediction
-                stringency.
+                A deep-learning model that predicts whether a peptide is a cancer T-cell antigenic epitope
+                (binary: Antigenic / Non-antigenic). The Multi-Level Pooling Transformer (MLPT-LARE, 199,225
+                parameters) runs an Adaptive Deep Multi-branch Attention Module (ADMAM) and 1-D Swin
+                Transformer blocks with masked pooling over a per-residue feature stream: the 20-dimensional
+                LARE-NW Bayesian posterior (from the alignment tool's Objective 1 model) plus the
+                Kolaskar &amp; Tongaonkar antigenicity propensity, fused with physicochemical descriptors.
+                LARE-NW's posterior hyperparameters were tuned with an SA-BWK metaheuristic. Because the model
+                is trained for ranking, it reports a probability plus a class at a tunable decision threshold
+                (default 0.455, the F1-optimal operating point) rather than a naive 0.5 cutoff.
+              </p>
+            </div>
+            <div className="about-tool-block about-tool-indigo">
+              <h3>Multi-Epitope Vaccine Designer</h3>
+              <p>
+                A design tool that assembles a K-peptide vaccine construct from a pool of candidate
+                epitopes. Each candidate is scored on three objectives — predicted antigenicity from
+                MLPT-LARE (Tool&nbsp;2), cross-variant conservation from LARE-NW (Tool&nbsp;1, when reference
+                variant sequences are provided), and HLA class-I population coverage (IEDB Hardy-Weinberg
+                model over Allele Frequency Net Database frequencies for Caucasoid, East-Asian,
+                Indian-subcontinent, or global populations). A composite fitness
+                (0.5·mean antigenicity + 0.3·min conservation + 0.2·joint coverage − 0.15·redundancy)
+                is maximised over subsets by a discrete Self-improved Black-Winged Kite (SA-BWK)
+                metaheuristic — greedy warm-started and benchmarked live against greedy and random
+                selection. The result is a construct with a per-peptide breakdown, multi-population
+                coverage, and the optimiser's convergence trajectory.
               </p>
             </div>
           </div>
@@ -71,12 +88,7 @@ function AboutPage() {
         {/* Research Group */}
         <section className="about-section">
           <h2 className="about-section-title">Research Group</h2>
-          <div className="about-researcher">
-            <p><strong>Principal Researcher:</strong> Ashwini Settu</p>
-            <p><strong>Department:</strong> School of Computing</p>
-            <p><strong>Institution:</strong> SRM Institute of Science and Technology, Chennai, Tamil Nadu, India</p>
-            <p><strong>Contact:</strong> ashwinisettu.as@gmail.com</p>
-          </div>
+          <ResearchTeam showHeader={false} />
         </section>
       </div>
     </div>

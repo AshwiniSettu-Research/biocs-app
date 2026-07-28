@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import ResearchTeam from './ResearchTeam';
 import './Footer.css';
 
 function Footer() {
@@ -293,12 +294,11 @@ function Footer() {
       {/* Research Groups Modal */}
       {showResearchModal && (
         <div className="modal-overlay" onClick={() => setShowResearchModal(false)}>
-          <div className="modal-content modal-sm" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content modal-team" onClick={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setShowResearchModal(false)}>
               &times;
             </button>
-            <h2 className="modal-title">Research Groups</h2>
-            {researcherInfo}
+            <ResearchTeam heading="Research Group" />
           </div>
         </div>
       )}

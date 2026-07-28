@@ -41,14 +41,18 @@ function Navbar() {
               >
                 Antigenic Peptide Predictor
               </Link>
+              <Link
+                to="/service/vaccine-designer"
+                className="dropdown-item"
+                onClick={() => setShowServiceDropdown(false)}
+              >
+                Multi-Epitope Vaccine Designer
+              </Link>
             </div>
           )}
         </li>
         <li className="nav-item">
           <a href="https://www.uniprot.org" target="_blank" rel="noopener noreferrer">Documents</a>
-        </li>
-        <li className="nav-item">
-          <a href="https://scholar.google.com/citations?user=qVLxihUAAAAJ&hl=en&authuser=2" target="_blank" rel="noopener noreferrer">Research</a>
         </li>
         <li className="nav-item">
           <a href="https://www.ebi.ac.uk/training/" target="_blank" rel="noopener noreferrer">Training</a>

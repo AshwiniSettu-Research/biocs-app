@@ -1,24 +1,24 @@
 .hero-banner {
-  background: linear-gradient(135deg, #0a1628 0%, #0d2137 30%, #0a2a3a 50%, #0d2137 70%, #0a1628 100%);
-  min-height: 280px;
+  background:
+    radial-gradient(ellipse at 30% 20%, #12405a 0%, transparent 55%),
+    radial-gradient(ellipse at 75% 90%, #0a4a52 0%, transparent 55%),
+    linear-gradient(135deg, #071a27 0%, #0a2a3a 45%, #082633 70%, #061620 100%);
+  min-height: 340px;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   position: relative;
-  padding: 40px 40px;
+  padding: 56px 40px;
 }
 
+/* Faint hexagonal science motif over the gradient */
 .hero-banner::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background:
-    radial-gradient(ellipse at 20% 50%, rgba(0, 180, 220, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 50%, rgba(0, 180, 220, 0.08) 0%, transparent 50%);
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='49' viewBox='0 0 56 49'%3E%3Cpath d='M28 0l24 14v21L28 49 4 35V14z' fill='none' stroke='%2335a7b5' stroke-opacity='0.10' stroke-width='1'/%3E%3C/svg%3E");
+  opacity: 0.7;
 }
 
 /* DNA SVG background animation */
@@ -30,7 +30,7 @@
   bottom: 0;
   display: flex;
   align-items: center;
-  opacity: 0.45;
+  opacity: 0.4;
 }
 
 .dna-svg {
@@ -63,66 +63,85 @@
   position: relative;
   z-index: 1;
   text-align: center;
-  max-width: 700px;
+  max-width: 760px;
+}
+
+.hero-eyebrow {
+  display: inline-block;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--teal-400);
+  padding: 6px 16px;
+  border: 1px solid rgba(53, 167, 181, 0.4);
+  border-radius: 999px;
+  background: rgba(53, 167, 181, 0.08);
+  margin-bottom: 20px;
 }
 
 .hero-title {
-  color: white;
-  font-size: 32px;
+  color: #fff;
+  font-size: 40px;
   font-weight: 800;
-  letter-spacing: 1px;
-  margin-bottom: 14px;
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+  letter-spacing: -0.5px;
+  line-height: 1.12;
+  margin-bottom: 16px;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
 }
 
 .hero-subtitle {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 15px;
+  color: rgba(226, 235, 240, 0.82);
+  font-size: 16px;
   line-height: 1.7;
-  margin-bottom: 28px;
+  margin: 0 auto 30px;
+  max-width: 640px;
 }
 
 .hero-actions {
   display: flex;
   gap: 14px;
   justify-content: center;
+  flex-wrap: wrap;
 }
 
 .hero-btn {
-  padding: 11px 30px;
+  padding: 12px 28px;
   font-size: 14px;
   font-weight: 600;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.2s;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   text-decoration: none;
 }
 
 .hero-btn-primary {
-  background: linear-gradient(135deg, #00695c, #00838f);
-  color: white;
-  border: none;
+  background: linear-gradient(135deg, var(--teal-600), var(--teal-500));
+  color: #fff;
+  border: 1px solid transparent;
+  box-shadow: 0 6px 18px rgba(13, 125, 140, 0.35);
 }
 
 .hero-btn-primary:hover {
-  background: linear-gradient(135deg, #004d40, #006064);
+  background: linear-gradient(135deg, var(--teal-700), var(--teal-600));
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 131, 143, 0.4);
-  color: white;
+  box-shadow: 0 10px 26px rgba(13, 125, 140, 0.45);
+  color: #fff;
 }
 
 .hero-btn-secondary {
-  background: transparent;
-  color: white;
-  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  border: 1.5px solid rgba(255, 255, 255, 0.34);
+  backdrop-filter: blur(2px);
 }
 
 .hero-btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: white;
+  background: rgba(255, 255, 255, 0.14);
+  border-color: #fff;
   transform: translateY(-2px);
-  color: white;
+  color: #fff;
 }
 
 @keyframes dnaScroll {
@@ -142,20 +161,20 @@
 
 @media (max-width: 768px) {
   .hero-banner {
-    min-height: 240px;
-    padding: 30px 20px;
+    min-height: 300px;
+    padding: 40px 20px;
   }
-
   .hero-title {
-    font-size: 24px;
+    font-size: 28px;
   }
-
   .hero-subtitle {
-    font-size: 14px;
+    font-size: 14.5px;
   }
-
   .hero-actions {
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
+  }
+  .hero-btn {
+    text-align: center;
   }
 }
